@@ -7,7 +7,7 @@
 * Your favorite terminal, [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) or [MobaXterm](https://mobaxterm.mobatek.net/download.html)
 * Open router / firewall tcp ports 80, 443 forward to your RPi
 
-### My RPi hardware setup:
+### My RPi hardware setup
 * [Raspberry Pi 4 Modèle B 4 Go ARM-Cortex-A72](https://www.amazon.fr/gp/product/B07TC2BK1X)
 * [Sandisk 32 Go Carte microSD Extreme](https://www.amazon.fr/gp/product/B06XWMQ81P)
 * [ZkeeShop Boitier en Aluminium avec Ventilateur et 4 dissipateur Thermique](https://www.amazon.fr/gp/product/B07YS8WHXT)
