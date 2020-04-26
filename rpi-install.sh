@@ -201,10 +201,7 @@ EOF
   # useradd -m -d /home/media -s /bin/bash -c "Media user" -g users media
   # usermod -a -G adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,lxd,netdev,www-data,syslog media
   # usermod -g 100 media
-  # (
-  # echo "M&di@!" # New UNIX password
-  # echo "M&di@!" # Retype new UNIX password
-  # ) | passwd media
+  # passwd media
 
   # USER="Jonathan|passwd|Jonathan Weisberg"
   for L in $(cat $FILE_NAME.env | grep "^USER"); do
@@ -596,6 +593,12 @@ EOF
     ln -f /var/docker/traefik/certs/ssl-cert.crt /var/docker/owncloud/files/files_external/rootcerts.crt
     ln -f /var/docker/traefik/certs/ssl-cert.key /var/docker/muximux/keys/cert.key
     ln -f /var/docker/traefik/certs/ssl-cert.crt /var/docker/muximux/keys/cert.crt
+  fi
+  if [ -f /var/docker/muximux/www/muximux/settings.ini.php ]; then
+    sed -i "s|^url = \"http://monitoring.rpi.local.*|url = \"http://monitoring.$HOST\"|g" /var/docker/muximux/www/muximux/settings.ini.php
+    sed -i "s|^url = \"http://proxy.rpi.local.*|url = \"http://proxy.$HOST/dashboard\"|g" /var/docker/muximux/www/muximux/settings.ini.php
+    sed -i "s|^url = \"http://docker.rpi.local.*|url = \"http://docker.$HOST\"|g" /var/docker/muximux/www/muximux/settings.ini.php
+    sed -i "s|^url = \"http://rpi.local/owncloud*|url = \"http://$HOST/owncloud\"|g" /var/docker/muximux/www/muximux/settings.ini.php
   fi
 
   echo "* [apt] Remove unused packages"

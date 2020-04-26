@@ -31,7 +31,7 @@ last_check = 1586351718
 
 [270782newApplication]
 name = "Monitoring"
-url = "http://monitoring.rpi.sbs"
+url = "http://monitoring.rpi.local"
 scale = 1
 icon = "muximux-dashboard"
 color = "#000000"
@@ -39,7 +39,7 @@ enabled = "true"
 
 [67066newApplication]
 name = "Traefik"
-url = "http://proxy.rpi.sbs/dashboard"
+url = "http://proxy.rpi.local/dashboard"
 scale = 1
 icon = "muximux-random"
 color = "#674ea7"
@@ -48,7 +48,7 @@ dd = "true"
 
 [761142newApplication]
 name = "Docker"
-url = "http://docker.rpi.sbs"
+url = "http://docker.rpi.local"
 scale = 1
 icon = "muximux-stack"
 color = "#674ea7"
@@ -56,7 +56,7 @@ enabled = "true"
 
 [48281newApplication]
 name = "ownCloud"
-url = "http://rpi.sbs/owncloud"
+url = "http://rpi.local/owncloud"
 scale = 1
 icon = "muximux-cloud"
 color = "#351c75"
