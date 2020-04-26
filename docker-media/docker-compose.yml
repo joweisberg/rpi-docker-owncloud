@@ -1,0 +1,184 @@
+version: "3.5"
+
+services:
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:armhf-latest
+    command: --interval 3600 --cleanup --remove-volumes
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    command:
+      - "--log.level=ERROR"
+#      - "--log.level=DEBUG"
+      - "--log.format=common"
+      - "--global.sendAnonymousUsage=false"
+      - "--serversTransport.insecureSkipVerify=true"
+      - "--api=true"
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      # Use stagging acme server to DEBUG certificates file
+#      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.letsencrypt.acme.email=$LE_MAIL"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/traefik/acme.json"
+      - "--accesslog=false"
+      - "--providers.file.filename=/traefik/servers.toml"
+      - "--providers.file.watch=true"
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.rule=Host(`proxy.$HOST`)"
+      - "traefik.http.routers.traefik.service=traefik"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+    env_file: .env
+    ports:
+      - $HTTP_PORT:80
+      - $HTTPS_PORT:443
+#    healthcheck:
+#      test: ["CMD", "curl" ,"--fail", "https://$DOMAIN && exit 0 || exit 1"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/docker/traefik:/traefik
+      - /var/docker/traefik/certs:/certs
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer:latest
+    command: -H unix:///var/run/docker.sock --no-auth
+    restart: unless-stopped
+    env_file: .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.entrypoints=web"
+      - "traefik.http.routers.portainer.rule=Host(`docker.$HOST`)"
+      - "traefik.http.routers.portainer.service=portainer"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.middlewares.portainer-header.headers.customResponseHeaders.customFrameOptionsValue=ALLORIGIN"
+      - "traefik.http.routers.portainer.middlewares=portainer-header"
+    depends_on:
+      - traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  glances:
+    container_name: glances
+    image: joweisberg/glances:latest
+    restart: unless-stopped
+    pid: host
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.glances.entrypoints=web"
+      - "traefik.http.routers.glances.rule=Host(`monitoring.$HOST`)"
+      - "traefik.http.routers.glances.service=glances"
+      - "traefik.http.services.glances.loadbalancer.server.port=61208"
+    depends_on:
+      - traefik
+    env_file: .env
+    environment:
+      - GLANCES_OPT=--webserver --byte --percpu
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/docker/glances:/glances/conf
+
+  certs-extraction:
+    container_name: certs-extraction
+    image: joweisberg/certs-extraction:latest
+    restart: unless-stopped
+    depends_on:
+      - traefik
+    env_file: .env
+    environment:
+      - ACME_COPY=/mnt/openwrt-certs
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - /var/docker/traefik:/mnt/data
+      - /mnt/openwrt-certs:/mnt/openwrt-certs
+
+  muximux:
+    container_name: muximux
+    image: linuxserver/muximux:latest
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.muximux.entrypoints=web"
+      - "traefik.http.routers.muximux.rule=Host(`media.$HOST`)"
+#      - "traefik.http.routers.muximux.service=muximux"
+#      - "traefik.http.services.muximux.loadbalancer.server.port=80"
+    depends_on:
+      - traefik
+    env_file: .env
+    volumes:
+      - /var/docker/muximux:/config
+
+  owncloud:
+    container_name: owncloud
+    image: owncloud/server:$OWNCLOUD_VERSION
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.owncloud_1.entrypoints=web"
+      - "traefik.http.routers.owncloud_1.rule=Host(`$HOST`) && PathPrefix(`/owncloud`)"
+#      - "traefik.http.routers.owncloud_1.service=owncloud"
+#      - "traefik.http.services.owncloud_1.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.owncloud_1-header.headers.customResponseHeaders.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.owncloud_1-prefix.stripprefix.prefixes=/owncloud"
+      - "traefik.http.routers.owncloud_1.middlewares=owncloud_1-header,owncloud_1-prefix"
+
+      - "traefik.http.routers.owncloud.entrypoints=websecure"
+      - "traefik.http.routers.owncloud.rule=Host(`$DOMAIN`) && PathPrefix(`/owncloud`)"
+#      - "traefik.http.routers.owncloud.service=owncloud"
+#      - "traefik.http.services.owncloud.loadbalancer.server.port=443"
+      - "traefik.http.routers.owncloud.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.owncloud-prefix.stripprefix.prefixes=/owncloud"
+      - "traefik.http.routers.owncloud.middlewares=secure-headers@file,owncloud-prefix"
+    depends_on:
+      - traefik
+      - redis
+    env_file: .env
+    environment:
+      - OWNCLOUD_DOMAIN=$DOMAIN
+      - OWNCLOUD_ADMIN_USERNAME=admin
+      - OWNCLOUD_ADMIN_PASSWORD=owncloud
+      - OWNCLOUD_REDIS_ENABLED=true
+      - OWNCLOUD_REDIS_HOST=redis
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - /var/docker/owncloud:/mnt/data
+
+  redis:
+    container_name: redis
+    image: webhippie/redis:latest
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5

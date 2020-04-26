@@ -1,0 +1,7 @@
+alias ll='ls -alFh --color=auto'
+alias topfiles='f() { du -hsx $2/* 2> /dev/null | sort -rh | head -n $1; }; f'
+alias docrec='f() { cd /home/media/docker-media; docker-compose up -d --no-deps --force-recreate $1; cd - > /dev/null; }; f'
+alias docps='docker ps -a'
+alias docdf='docker system df'
+alias docprune='docker system prune --all --volumes --force'
+alias cputemp='cpu=$(cat /sys/class/thermal/thermal_zone0/temp) && echo "CPU = $((cpu/1000))°C"'
