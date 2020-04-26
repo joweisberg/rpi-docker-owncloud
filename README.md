@@ -59,7 +59,7 @@ $ ln -sf /var/docker $HOME/docker
 Setup is located on $HOME/`rpi-install.env`
 * `DOMAIN`: sub.example.com the domain name dns resolution
 
-Multiple users:
+Samba users list:
 * `USER`: < User Login>|< User Password <i>(can be empty)</i>>|< Full Name User / Description>
 
 ```bash
