@@ -5,7 +5,11 @@
 * Ubuntu image [ubuntu-18.04.4-preinstalled-server-arm64+raspi3.img.xz](http://cdimage.ubuntu.com/releases/18.04.4/release/ubuntu-18.04.4-preinstalled-server-arm64+raspi3.img.xz)
 * Clone the image to SD Card with [Rufus](https://sourceforge.net/projects/rufus.mirror/files/latest/download)
 * Your favorite terminal, [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) or [MobaXterm](https://mobaxterm.mobatek.net/download.html)
-* Open router / firewall tcp ports 80, 443 forward to your RPi
+* `Add hostname` or static lease on your router `to target RPi IP address` (and the `Local domain: local`) (for local reverse-proxy setup):
+  * monitoring.rpi.local
+  * proxy.rpi.local
+  * docker.rpi.local
+* On your main router, `open firewall tcp ports` 80, 443 forward to target your RPi IP address
 
 ### My RPi hardware setup
 * [Raspberry Pi 4 Modèle B 4 Go ARM-Cortex-A72](https://www.amazon.fr/gp/product/B07TC2BK1X)
