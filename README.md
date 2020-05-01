@@ -95,6 +95,6 @@ $ cd $HOME/docker-media && ./docker-run.sh
 7. RPi web access:
 
 * http://rpi/ - RPi console management
-![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/master/.img/muximux.png)
+![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/master/.img/media-rpi.png)
 * https://sub.example.com/owncloud (default login/password: admin/owncloud)
 ![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/master/.img/owncloud.png)
