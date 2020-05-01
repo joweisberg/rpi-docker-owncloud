@@ -1,8 +1,35 @@
 #!/bin/bash
 #
+# ssh ubuntu@ubuntu / ubuntu
+# sudo -i
+# (
+# echo "RPi.!#_" # New UNIX password
+# echo "Rpi.!#_" # Retype new UNIX password
+# ) | passwd
+# useradd -m -d /home/media -s /bin/bash -c "RPi's media user" -g users media
+# usermod -a -G adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,lxd,netdev,www-data,syslog media
+# usermod -g 100 media
+# (
+# echo "M&di@!" # New UNIX password
+# echo "M&di@!" # Retype new UNIX password
+# ) | passwd media
+# echo "rpi" > /etc/hostname
+# reboot
+# 
+# ssh media@rpi / M&di@!
+# sudo -i
+# deluser ubuntu
+# rm -Rf /home/ubuntu
+# mkdir /var/docker
+# chown media:users /var/docker
+# exit
+# ln -sf /var/docker $HOME/docker
+#
 # Launch command:
 # sudo $HOME/rpi-install.sh --backup 2>&1 | tee /var/log/rpi-backup.log
 # sudo $HOME/rpi-install.sh 2>&1 | tee /var/log/rpi-install.log
+#
+# cpu=$(cat /sys/class/thermal/thermal_zone0/temp) && echo "CPU => $((cpu/1000))°C"
 #
 
 FILE_PATH=$(readlink -f $(dirname $0))  #/home/media
@@ -57,6 +84,12 @@ echo "* Command: $0 $@"
 echo "* Start time: $(date)"
 echo "* "
 
+# Source environment variables
+ACME_COPY=0
+if [ -f $FILE_NAME.env ]; then
+  . $FILE_NAME.env
+fi
+
 CONF_BASE="backup-$HOSTNAME"
 CONF_NAME="backup-$HOSTNAME-$(date +'%Y-%m-%d')"
 CONF_FILE="backup-$HOSTNAME-$(date +'%Y-%m-%d').tar.gz"
@@ -67,7 +100,7 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
     exit 1
   fi
   echo "* [Ubuntu] Backup files/folders into $CONF_FILE"
-
+  
   BKP_PATH=$FILE_PATH/$HOSTNAME-backup
   mkdir -p $BKP_PATH
   cd $BKP_PATH
@@ -79,7 +112,7 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
     ls -tr $CONF_BASE-* | head -n$NB
     ls -tr $CONF_BASE-* | head -n$NB | xargs rm -f
   fi
-
+  
   # Remove same existing file
   rm -f $CONF_NAME*
   # Create archive w/ list of files/folders
@@ -104,7 +137,7 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
   echo "* "
   echo "* "
   echo "* [Ubuntu] Backup completed."
-
+  
   echo "* "
   echo "* End time: $(date)"
   runend=$(date +%s)
@@ -116,7 +149,7 @@ elif [ -n "$(echo $1 | grep '\-d=')" ] || [ -n "$(echo $1 | grep '\--domain=')" 
   # $1 = "--domain=ejw.root.sx"
   # Get the value after =
   DOMAIN=${1#*=}
-
+  
   echo "* Ubuntu installation for $DOMAIN"
 
   RESTORE_BKP=1
@@ -163,6 +196,7 @@ elif [ -n "$(echo $1 | grep '\-d=')" ] || [ -n "$(echo $1 | grep '\--domain=')" 
   cat << 'EOF' > .bash_aliases
 alias ll='ls -alFh --color=auto'
 alias topfiles='f() { du -hsx $2/* 2> /dev/null | sort -rh | head -n $1; }; f'
+alias cpsync='rsync -ahW --no-compress --info=progress2 --stats --exclude=.bin/ --delete --ignore-errors'
 alias docrec='f() { cd /home/media/docker-media; docker-compose up -d --no-deps --force-recreate $1; cd - > /dev/null; }; f'
 alias docps='docker ps -a'
 alias docdf='docker system df'
@@ -201,8 +235,11 @@ EOF
   # useradd -m -d /home/media -s /bin/bash -c "Media user" -g users media
   # usermod -a -G adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,lxd,netdev,www-data,syslog media
   # usermod -g 100 media
-  # passwd media
-
+  # (
+  # echo "M&di@!" # New UNIX password
+  # echo "M&di@!" # Retype new UNIX password
+  # ) | passwd media
+  
   # USER="Jonathan|passwd|Jonathan Weisberg"
   for L in $(cat $FILE_NAME.env | grep "^USER"); do
     # Get the value after =
@@ -214,7 +251,7 @@ EOF
 
     # User login to lowercase
     U=$(echo $V | cut -d'|' -f1 | awk '{print tolower($0)}')
-
+    
     # useradd -m -d /home/jonathan -s /bin/false -c "Jonathan Weisberg" -g users jonathan
     # usermod -a -G users jonathan
     # rm -Rf /home/jonathan
@@ -227,15 +264,31 @@ EOF
   apt -y install cifs-utils nfs-common
   echo "* [usbmount] Install packages"
   apt -y install ntfs-3g exfat-utils exfat-fuse
-  echo "* [fstab] Attach data devices"
-  mkdir /mnt/data
-  mkdir /mnt/openwrt-certs
-  cat << EOF >> /etc/fstab
+  echo "* [fstab] Attach USB data devices"
+  #/dev/sda1: LABEL="home_data" UUID="7662-C355" TYPE="exfat" PARTUUID="6c727443-01"
+  #/dev/sda1: LABEL="home_data" UUID="60E8C1B2E8C186AE" TYPE="ntfs" PARTUUID="68e32bcd-01"
+  eval $(blkid | grep sda | grep -o -e "TYPE=\S*")
+  if [ "$TYPE" == "ntfs" ]; then
+    mkdir /mnt/data
+    cat << EOF >> /etc/fstab
 # Usb data disk /dev/sda
-LABEL=home_data /mnt/data exfat defaults,nofail,noatime 0 0
+/dev/sda1 /mnt/data ntfs-3g defaults,nofail,noatime 0 0
+EOF
+  elif [ -n "$TYPE" ]; then
+    mkdir /mnt/data
+    cat << EOF >> /etc/fstab
+# Usb data disk /dev/sda
+/dev/sda1 /mnt/data $TYPE defaults,nofail,noatime 0 0
+EOF
+  fi
+  if [ $ACME_COPY -eq 1 ]; then
+    mkdir /mnt/openwrt-certs
+    cat << EOF >> /etc/fstab
 # Attached devices
 //openwrt/OpenWrt-Certs$ /mnt/openwrt-certs cifs _netdev,guest,user=root,iocharset=utf8,vers=2.0 0 0
 EOF
+    sed -i 's/^#__ACME_COPY__//' $FILE_PATH/docker-media/docker-compose.yml
+  fi
 
   echo "* [cronjob] Add backup data"
   cat << EOF >> /var/spool/cron/crontabs/root
@@ -367,7 +420,7 @@ EOF
 
     U=$(echo $V | cut -d'|' -f1)  #Samba User
     P=$(echo $V | cut -d'|' -f2)  #Samba User Password
-
+    
 #[Jonathan$]
 #  path=/share/Users/Jonathan
 #  comment=Jonathan's Folder
@@ -403,7 +456,7 @@ EOF
     echo $P # New SMB password
     echo $P # Retype new SMB password
     ) | smbpasswd -a $U
-
+    
     rm -Rf /share/Users/$U/.bin/*
   done
 

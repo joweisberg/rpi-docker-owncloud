@@ -107,8 +107,8 @@ services:
     depends_on:
       - traefik
     env_file: .env
-    environment:
-      - ACME_COPY=/mnt/openwrt-certs
+#__ACME_COPY__    environment:
+#__ACME_COPY__      - ACME_COPY=/mnt/openwrt-certs
     healthcheck:
       test: ["CMD", "/usr/bin/healthcheck"]
       interval: 30s
@@ -116,7 +116,7 @@ services:
       retries: 5
     volumes:
       - /var/docker/traefik:/mnt/data
-      - /mnt/openwrt-certs:/mnt/openwrt-certs
+#__ACME_COPY__      - /mnt/openwrt-certs:/mnt/openwrt-certs
 
   muximux:
     container_name: muximux
@@ -161,8 +161,8 @@ services:
     env_file: .env
     environment:
       - OWNCLOUD_DOMAIN=$DOMAIN
-      - OWNCLOUD_ADMIN_USERNAME=admin
-      - OWNCLOUD_ADMIN_PASSWORD=owncloud
+      - OWNCLOUD_ADMIN_USERNAME=owncloud
+      - OWNCLOUD_ADMIN_PASSWORD=OwnCloud@!
       - OWNCLOUD_REDIS_ENABLED=true
       - OWNCLOUD_REDIS_HOST=redis
     healthcheck:

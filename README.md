@@ -62,6 +62,7 @@ $ ln -sf /var/docker $HOME/docker
 
 Setup is located on $HOME/`rpi-install.env`
 * `DOMAIN`: sub.example.com the domain name dns resolution
+* `ACME_COPY`: 1 to enable copy acme certificates to your router (used on $HOME/docker-media/docker-compose.yml > certs-extraction)
 
 Samba users list:
 * `USER`: < User Login>|< User Password <i>(can be empty)</i>>|< Full Name User / Description>
