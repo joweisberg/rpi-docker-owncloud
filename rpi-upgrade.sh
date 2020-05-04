@@ -48,7 +48,7 @@ function fDockerBackup() {
   BKP_PATH=$NAME_APP-bkp
   mkdir -p $BKP_PATH
   cd $BKP_PATH
-  
+
   # Keep only the last 3 more recent backup files
   if [ $(ls -tr docker-$NAME-* 2> /dev/null | wc -l) -gt 3 ]; then
     NB=$(eval echo $(($(ls -tr docker-$NAME-* | wc -l) -3)))
@@ -56,7 +56,7 @@ function fDockerBackup() {
     ls -tr docker-$NAME-* | head -n$NB
     ls -tr docker-$NAME-* | head -n$NB | xargs rm -f
   fi
-  
+
   tar -czf docker-$NAME-${NAME_VER}_$FILE_DATE.tar.gz $NAME_APP 2> /dev/null
   # Moves to the previous directory
   cd - > /dev/null
@@ -75,12 +75,12 @@ function fDockerImageTagExists() {
 }
 
 function fSendMail() {
-  
+
   if [ -f $FILE_LOG ]; then
-    if [ -n "$(cat $FILE_LOG | grep "\[docker\] owncloud $OC_VER upgrade completed.")" ] || 
-       [ -n "$(cat $FILE_LOG | grep "\[docker\] owncloud $OC_VER Third-Party Apps upgrade completed.")" ] || 
+    if [ -n "$(cat $FILE_LOG | grep "\[docker\] owncloud $OC_VER upgrade completed.")" ] ||
+       [ -n "$(cat $FILE_LOG | grep "\[docker\] owncloud $OC_VER Third-Party Apps upgrade completed.")" ] ||
        [ -n "$(cat $FILE_LOG | grep "\[Ubuntu\] Upgrade completed.")" ]; then
-       
+
       MSG_HEAD="Upgrade $HOSTNAME completed."
       #echo -e "Subject: [$HOSTNAME $DOMAIN] Upgrade @ $rundate\n\n$MSG_HEAD\n\n$(cat $FILE_LOG)" | msmtp $(whoami)
       echo -e "$MSG_HEAD\n\n$(cat $FILE_LOG)" | mailx -s "[$HOSTNAME $DOMAIN] Upgrade @ $rundate" -- $(whoami)
@@ -166,9 +166,9 @@ OC_VER=$VER_NEW
 
 if [ "$UPDATE" == "OK" ]; then
   fDockerBackup $NAME $NAME_APP $VER_OLD
-  
+
   echo "* [docker] $NAME Upgrading from $VER_OLD to $VER_NEW"
-  
+
 #  echo "* [docker] Disable $NAME Third-Party Apps:"
 #  ls $NAME_APP/apps
 #  for app in $(ls $NAME_APP/apps); do
@@ -176,7 +176,7 @@ if [ "$UPDATE" == "OK" ]; then
 #  done
 #  echo "* [docker] Enable $NAME maintenance mode"
 #  docker exec -i $NAME /bin/bash -c "occ maintenance:mode --on" 2>&1
-  
+
   echo "* [docker] Building and Starting docker-compose for $NAME $VER_NEW"
   # docker pull owncloud/server:$VER_NEW
   sed -i "s/^OWNCLOUD_VERSION=.*/OWNCLOUD_VERSION=$VER_NEW/g" $DOCK_ENV 2>&1
@@ -187,7 +187,7 @@ if [ "$UPDATE" == "OK" ]; then
 
 #  echo "* [docker] $NAME Upgrading to $VER_NEW"
 #  docker exec -i $NAME /bin/bash -c "occ upgrade" 2>&1
-  
+
 #  echo "* [docker] $NAME Disable maintenance mode"
 #  docker exec -i $NAME /bin/bash -c "occ maintenance:mode --off" 2>&1
 
@@ -207,10 +207,29 @@ if [ "$UPDATE" == "OK" ]; then
 fi
 
 echo "* "
+echo "* [healthcheck] Waiting for $NAME docker to be up and running, please wait..."
+URL_TO_CHECK="http://$HOST/$NAME"
+URL_PASSED=0
+while [ $URL_PASSED -eq 0 ]; do
+  for URL in $(echo $URL_TO_CHECK | tr "|" "\n"); do
+    URL_MSG=$(curl -sSf --insecure $URL 2>&1)
+    if [ $? -eq 0 ]; then
+      URL_PASSED=1
+      echo "* [healthcheck] Website is up $URL and running!"
+    else
+      URL_PASSED=0
+      echo "* [healthcheck] Website is down $URL ..."
+#      echo "* [healthcheck] Error: $URL_MSG"
+      sleep 10
+    fi
+  done
+done
+
+echo "* "
 echo "* [docker] $NAME Upgrade Third-Party Apps on Market, please wait..."
 OCC_APPS_LOG="/var/log/occ-upgrade-apps.log"
 rm -f $OCC_APPS_LOG
-docker exec -i owncloud /bin/bash -c "occ market:upgrade files_mediaviewer" >> $OCC_APPS_LOG
+docker exec -i $NAME /bin/bash -c "occ market:upgrade files_mediaviewer" >> $OCC_APPS_LOG
 for app in $(ls $NAME_APP/apps); do
   docker exec -i $NAME /bin/bash -c "occ market:upgrade $app" >> $OCC_APPS_LOG
 done
@@ -245,7 +264,7 @@ elif [ $pkgUpgradable -gt 0 ]; then
 fi
 if [ $pkgUpgradable -eq 0 ]; then
     echogreen "* [Ubuntu] is up to date!"
-    
+
 elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
 
   if [ $pkgUpgradable -gt 0 ]; then
@@ -271,7 +290,7 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     sudo sed -i 's/^After=.*/After=network-online.target netfilter-persistent.service containerd.service smbd.service/g' /lib/systemd/system/docker.service
     sudo systemctl daemon-reload
     sudo systemctl restart docker
-    
+
     echo "* "
     echo "* "
     echo "* "
