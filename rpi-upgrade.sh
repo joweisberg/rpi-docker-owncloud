@@ -79,7 +79,8 @@ function fSendMail() {
   if [ -f $FILE_LOG ]; then
     if [ -n "$(cat $FILE_LOG | grep "\[docker\] owncloud $OC_VER upgrade completed.")" ] ||
        [ -n "$(cat $FILE_LOG | grep "\[docker\] owncloud $OC_VER Third-Party Apps upgrade completed.")" ] ||
-       [ -n "$(cat $FILE_LOG | grep "\[Ubuntu\] Upgrade completed.")" ]; then
+       [ -n "$(cat $FILE_LOG | grep "\[Ubuntu\] Upgrade completed.")" ] ||
+       [ -n "$(cat $FILE_LOG | grep "\[Ubuntu\] Upgrade release")" ]; then
 
       MSG_HEAD="Upgrade $HOSTNAME completed."
       #echo -e "Subject: [$HOSTNAME $DOMAIN] Upgrade @ $rundate\n\n$MSG_HEAD\n\n$(cat $FILE_LOG)" | msmtp $(whoami)
@@ -300,6 +301,30 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
   fi
 else
   echored "* [Ubuntu] is not updated."
+fi
+
+
+echo "* "
+echo "* [Ubuntu] Checking for new release, please wait..."
+if [ -n "$(do-release-upgrade -m server --devel-release -c | grep 'New release')" ]; then
+  LTS=$(cat /etc/update-manager/release-upgrades | grep "^Prompt" | cut -d'=' -f2)
+  # Set to upper case
+  LTS=${LTS^^}
+  echo "* [Ubuntu] Upgrade release from $(do-release-upgrade -V | cut -d' ' -f3) $LTS to $(do-release-upgrade -m server --devel-release -c | grep 'New release' | cut -d"'" -f2) $LTS"
+  echo "* "
+  echo "* Please run: sudo do-release-upgrade -m server --devel-release --quiet"
+  #sudo do-release-upgrade -m server --devel-release --quiet
+  if [ $? -ne 0 ]; then
+    echored "* [Ubuntu] Do-Release-Upgrade command failed! \nPlease check the log..."
+    exit 1
+  fi
+
+  #echo "* "
+  #echo "* "
+  #echo "* "
+  #echo "* [Ubuntu] Upgrade realase completed."
+else
+  echogreen "* [Ubuntu] is up to date!"
 fi
 
 
