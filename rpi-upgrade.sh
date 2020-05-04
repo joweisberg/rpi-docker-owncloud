@@ -128,6 +128,7 @@ NAME_APP=/var/docker/owncloud
 VER_OLD=$(cat $DOCK_ENV | grep "OWNCLOUD_VERSION" | cut -d'=' -f2)
 VER_NEW=$(git ls-remote --tags --refs https://github.com/owncloud/core.git | cut -d'v' -f2 | grep -v -E "alpha|beta|RC" | sort -nr 2> /dev/null | head -n1)
 
+echo "* "
 echo "* [docker] $NAME Checking for updates, please wait..."
 
 UPDATE=""
