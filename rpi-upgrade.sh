@@ -304,6 +304,13 @@ else
 fi
 
 
+if [ $(dpkg --list | grep -E "linux-image-[0-9]+|linux-headers-[0-9]+" | grep -v $(uname -r) | wc -l) -gt 0 ]; then
+  echo "* "
+  echo "* [dpkg] Remove All Unused Linux Kernel Headers and Images"
+  dpkg --list | grep -E "linux-image-[0-9]+|linux-headers-[0-9]+" | grep -v $(uname -r) | awk '{print $2}' | sort -V | sed -n '/'`uname -r`'/q;p' | xargs sudo apt -y remove --purge
+  #update-initramfs -u
+fi
+
 echo "* "
 echo "* [Ubuntu] Checking for new release, please wait..."
 if [ -n "$(do-release-upgrade -m server --devel-release -c | grep 'New release')" ]; then
