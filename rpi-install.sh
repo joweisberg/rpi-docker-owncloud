@@ -306,8 +306,8 @@ EOF
 
   echo "* [fs] Set symlink on /share"
   sudo -i -u media bash << EOF
-#ln -sf /var/docker $HOME/docker
-ln -sf /share $HOME/share
+#ln -sf /var/docker \$HOME/docker
+ln -sf /share \$HOME/share
 ln -sf /mnt/data/Public /share/Public
 ln -sf /mnt/data/Users /share/Users
 EOF
