@@ -6,7 +6,7 @@ FILE_NAME=${FILE_NAME%.*}               #docker-run
 FILE_DATE=$(date +'%Y%m%d-%H%M%S')
 FILE_LOG="/var/log/$FILE_NAME.log"
 
-HOST=$(hostname -f | awk '{ print $1 }')
+HOST=$(hostname -A | awk '{ print $1 }')
 HOST_IP=$(hostname -I | awk '{ print $1 }')
 
 #if [ $(docker images local/certs-extraction | wc -l) -ne 2 ]; then
