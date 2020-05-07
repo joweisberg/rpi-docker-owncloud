@@ -637,6 +637,7 @@ EOF
   fi
   if [ -f /var/docker/traefik/servers.toml ]; then
     sed -i "s/.*rule = \"Host.*/    rule = \"Host(\`$DOMAIN.\`)\"/g" /var/docker/traefik/servers.toml
+    chmod 600 /var/docker/traefik/acme.json
   fi
   if [ -f /var/docker/traefik/certs/ssl-cert.key ]; then
     echo "* [traefik] Set symlink for ssl certificates"
