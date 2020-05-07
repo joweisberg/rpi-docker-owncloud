@@ -15,7 +15,7 @@
 # ) | passwd media
 # echo "rpi" > /etc/hostname
 # reboot
-# 
+#
 # ssh media@rpi / M&di@!
 # sudo -i
 # deluser ubuntu
@@ -70,11 +70,11 @@ if [ "$1" == "-h" ] || [ "$1" == "--help" ] || [ $HELP -eq 1 ]; then
   echo "* Ubuntu script must have one sub-command argument"
   echo "* Usage: $FILE_NAME.sh [option]"
   echo "* where sub-command is one of:"
-  echo "  -d, --domain=<ejw.root.sx>    Install Ubuntu for specific domain"
-  echo "  -b, --backup                  Backup Ubuntu"
+  echo "  -d, --domain=sub.example.com    Install Ubuntu for specific domain"
+  echo "  -b, --backup                    Backup Ubuntu"
   echo "* "
   echo "* sudo $FILE_PATH/$FILE_NAME.sh --backup 2>&1 | tee /var/log/$HOSTNAME-backup.log"
-  echo "* sudo $FILE_PATH/$FILE_NAME.sh --domain=<ejw.root.sx> 2>&1 | tee /var/log/$HOSTNAME-install.log"
+  echo "* sudo $FILE_PATH/$FILE_NAME.sh --domain=${DOMAIN:-sub.example.com} 2>&1 | tee /var/log/$HOSTNAME-install.log"
   exit 1
 fi
 
@@ -100,7 +100,7 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
     exit 1
   fi
   echo "* [Ubuntu] Backup files/folders into $CONF_FILE"
-  
+
   BKP_PATH=$FILE_PATH/$HOSTNAME-backup
   mkdir -p $BKP_PATH
   cd $BKP_PATH
@@ -112,7 +112,7 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
     ls -tr $CONF_BASE-* | head -n$NB
     ls -tr $CONF_BASE-* | head -n$NB | xargs rm -f
   fi
-  
+
   # Remove same existing file
   rm -f $CONF_NAME*
   # Create archive w/ list of files/folders
@@ -137,7 +137,7 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
   echo "* "
   echo "* "
   echo "* [Ubuntu] Backup completed."
-  
+
   echo "* "
   echo "* End time: $(date)"
   runend=$(date +%s)
@@ -146,10 +146,10 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
   exit 0
 
 elif [ -n "$(echo $1 | grep '\-d=')" ] || [ -n "$(echo $1 | grep '\--domain=')" ]; then
-  # $1 = "--domain=ejw.root.sx"
+  # $1 = "--domain=sub.example.com"
   # Get the value after =
   DOMAIN=${1#*=}
-  
+
   echo "* Ubuntu installation for $DOMAIN"
 
   RESTORE_BKP=1
@@ -239,7 +239,7 @@ EOF
   # echo "M&di@!" # New UNIX password
   # echo "M&di@!" # Retype new UNIX password
   # ) | passwd media
-  
+
   # USER="Jonathan|passwd|Jonathan Weisberg"
   for L in $(cat $FILE_NAME.env | grep "^USER"); do
     # Get the value after =
@@ -251,7 +251,7 @@ EOF
 
     # User login to lowercase
     U=$(echo $V | cut -d'|' -f1 | awk '{print tolower($0)}')
-    
+
     # useradd -m -d /home/jonathan -s /bin/false -c "Jonathan Weisberg" -g users jonathan
     # usermod -a -G users jonathan
     # rm -Rf /home/jonathan
@@ -420,7 +420,7 @@ EOF
 
     U=$(echo $V | cut -d'|' -f1)  #Samba User
     P=$(echo $V | cut -d'|' -f2)  #Samba User Password
-    
+
 #[Jonathan$]
 #  path=/share/Users/Jonathan
 #  comment=Jonathan's Folder
@@ -456,7 +456,7 @@ EOF
     echo $P # New SMB password
     echo $P # Retype new SMB password
     ) | smbpasswd -a $U
-    
+
     rm -Rf /share/Users/$U/.bin/*
   done
 
