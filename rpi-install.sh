@@ -569,20 +569,25 @@ EOF
   # upsc el650usb | mailx -s "Power outage @ $(date)" -- $(whoami)
 
   echo "* [hd-idle] Enable SATA spin down (10 mins)"
-  apt -y install build-essential fakeroot debhelper
-  cd /root
-  wget http://sourceforge.net/projects/hd-idle/files/hd-idle-1.05.tgz
-  tar -xvf hd-idle-1.05.tgz && chown -R root:root hd-idle && cd hd-idle
-  dpkg-buildpackage -rfakeroot
-  dpkg -i ../hd-idle_*.deb
-  cd $FILE_PATH
+  # For older version than Ubuntu 20.04 LTS
+  if [ $(lsb_release -r | awk '{print $2}' | sed 's/\.//') -lt 2004 ]; then
+    apt -y install build-essential fakeroot debhelper
+    cd /root
+    wget http://sourceforge.net/projects/hd-idle/files/hd-idle-1.05.tgz
+    tar -xvf hd-idle-1.05.tgz && chown -R root:root hd-idle && cd hd-idle
+    dpkg-buildpackage -rfakeroot
+    dpkg -i ../hd-idle_*.deb
+    apt -y autoremove --purge build-essential fakeroot debhelper
+    cd $FILE_PATH
+  else
+    apt -y install hd-idle
+  fi
   cat << EOF > /etc/default/hd-idle
 START_HD_IDLE=true
-HD_IDLE_OPTS="-i 0 -a sda -i 600"
+HD_IDLE_OPTS="-i 0 -a sda -i 600 -l /var/log/hd-idle.log"
 EOF
   systemctl start hd-idle
   systemctl enable hd-idle
-
 
   echo "* [iptables] Install packages"
   apt -y install iptables-persistent netfilter-persistent
