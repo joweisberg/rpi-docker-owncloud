@@ -656,7 +656,8 @@ EOF
   fi
 
   echo "* [apt] Remove unused packages"
-  apt -y autoremove cryptsetup
+  apt -y autoremove --purge lxd snapd
+  apt -y autoremove --purge cryptsetup
 
 
   echo "* "
