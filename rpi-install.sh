@@ -188,7 +188,7 @@ elif [ -n "$(echo $1 | grep '\-d=')" ] || [ -n "$(echo $1 | grep '\--domain=')" 
   echo "* [apt] Checking for updates, please wait..."
   apt update > /dev/null 2>&1
 
-  echo "* [tzdata] Set localtime to Europe/Paris"
+  echo "* [tzdata] Set timezone to Europe/Paris"
   echo "Europe/Paris" > /etc/timezone
   ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 
