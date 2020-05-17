@@ -61,6 +61,7 @@ $ ln -sf /var/docker $HOME/docker
 4. Launch RPi installation
 
 Setup is located on $HOME/`rpi-install.env`
+* `TZ`: timezone name (like Etc/UTC or Europe/Paris)
 * `DOMAIN`: sub.example.com the domain name dns resolution
 * `ACME_COPY`: 1 to enable copy acme certificates to your router (used on $HOME/docker-media/docker-compose.yml > certs-extraction)
 
