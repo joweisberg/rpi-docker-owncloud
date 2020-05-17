@@ -314,10 +314,10 @@ fi
 
 echo "* "
 echo "* [Ubuntu] Checking for new release, please wait..."
+LTS=$(cat /etc/update-manager/release-upgrades | grep "^Prompt" | cut -d'=' -f2)
+# Set to upper case
+LTS=${LTS^^}
 if [ -n "$(do-release-upgrade -m server --devel-release -c | grep 'New release')" ]; then
-  LTS=$(cat /etc/update-manager/release-upgrades | grep "^Prompt" | cut -d'=' -f2)
-  # Set to upper case
-  LTS=${LTS^^}
   echo "* [Ubuntu] Upgrade release from $(do-release-upgrade -V | cut -d' ' -f3) $LTS to $(do-release-upgrade -m server --devel-release -c | grep 'New release' | cut -d"'" -f2) $LTS"
   echo "* "
   echo "* Please run: sudo do-release-upgrade -m server --devel-release --quiet"
@@ -332,7 +332,7 @@ if [ -n "$(do-release-upgrade -m server --devel-release -c | grep 'New release')
   #echo "* "
   #echo "* [Ubuntu] Upgrade realase completed."
 else
-  echogreen "* [Ubuntu] is up to date!"
+  echogreen "* [Ubuntu] Release $(do-release-upgrade -V | cut -d' ' -f3) $LTS is up to date!"
 fi
 
 
