@@ -196,7 +196,8 @@ elif [ -n "$(echo $1 | grep '\-d=')" ] || [ -n "$(echo $1 | grep '\--domain=')" 
   cat << 'EOF' > .bash_aliases
 alias ll='ls -alFh --color=auto'
 alias topfiles='f() { du -hsx $2/* 2> /dev/null | sort -rh | head -n $1; }; f'
-alias cpsync='rsync -ahW --no-compress --info=progress2 --stats --exclude=.bin/ --delete --ignore-errors'
+alias cpsync-mini='rsync -rpthW --inplace --no-compress --exclude=.bin/ --delete --info=progress2'
+alias cpsync-full='rsync -ahW --inplace --no-compress --exclude=.bin/ --delete --info=progress2'
 alias docrec='f() { cd /home/media/docker-media; docker-compose up -d --no-deps --force-recreate $1; cd - > /dev/null; }; f'
 alias docps='docker ps -a'
 alias docdf='docker system df'
@@ -272,20 +273,20 @@ EOF
     mkdir /mnt/data
     cat << EOF >> /etc/fstab
 # Usb data disk /dev/sda
-/dev/sda1 /mnt/data ntfs-3g defaults,nofail,noatime 0 0
+/dev/sda1 /mnt/data ntfs-3g defaults,uid=$(id -u media),gid=$(id -g media),nofail,noatime 0 2
 EOF
   elif [ -n "$TYPE" ]; then
     mkdir /mnt/data
     cat << EOF >> /etc/fstab
 # Usb data disk /dev/sda
-/dev/sda1 /mnt/data $TYPE defaults,nofail,noatime 0 0
+/dev/sda1 /mnt/data $TYPE defaults,uid=$(id -u media),gid=$(id -g media),nofail,noatime 0 2
 EOF
   fi
   if [ $ACME_COPY -eq 1 ]; then
     mkdir /mnt/openwrt-certs
     cat << EOF >> /etc/fstab
 # Attached devices
-//openwrt/OpenWrt-Certs$ /mnt/openwrt-certs cifs _netdev,guest,user=root,iocharset=utf8,vers=2.0 0 0
+//openwrt/OpenWrt-Certs$ /mnt/openwrt-certs cifs _netdev,guest,user=root,iocharset=utf8,vers=2.0 0 2
 EOF
     sed -i 's/^#__ACME_COPY__//' $FILE_PATH/docker-media/docker-compose.yml
   fi
