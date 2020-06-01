@@ -269,17 +269,20 @@ EOF
   #/dev/sda1: LABEL="home_data" UUID="7662-C355" TYPE="exfat" PARTUUID="6c727443-01"
   #/dev/sda1: LABEL="home_data" UUID="60E8C1B2E8C186AE" TYPE="ntfs" PARTUUID="68e32bcd-01"
   eval $(blkid | grep sda | grep -o -e "TYPE=\S*")
+  eval $(blkid | grep sda | grep -o -e "LABEL=\S*")
   if [ "$TYPE" == "ntfs" ]; then
     mkdir /mnt/data
     cat << EOF >> /etc/fstab
 # Usb data disk /dev/sda
-/dev/sda1 /mnt/data ntfs-3g defaults,uid=$(id -u media),gid=$(id -g media),nofail,noatime 0 2
+#$(blkid | grep sda | cut -d':' -f1) /mnt/data $TYPE-3g defaults,uid=$(id -u media),gid=$(id -g media),nofail,noatime 0 2
+LABEL="$LABEL" /mnt/data $TYPE-3g defaults,uid=$(id -u media),gid=$(id -g media),nofail,noatime 0 2
 EOF
   elif [ -n "$TYPE" ]; then
     mkdir /mnt/data
     cat << EOF >> /etc/fstab
 # Usb data disk /dev/sda
-/dev/sda1 /mnt/data $TYPE defaults,uid=$(id -u media),gid=$(id -g media),nofail,noatime 0 2
+#$(blkid | grep sda | cut -d':' -f1) /mnt/data $TYPE defaults,uid=$(id -u media),gid=$(id -g media),nofail,noatime 0 2
+LABEL="$LABEL" /mnt/data $TYPE defaults,uid=$(id -u media),gid=$(id -g media),nofail,noatime 0 2
 EOF
   fi
   if [ $ACME_COPY -eq 1 ]; then
