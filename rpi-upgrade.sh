@@ -111,18 +111,6 @@ echo "* Command: $0 $@"
 echo "* Start time: $(date)"
 echo "* "
 
-echo "* [fs] Cleanup unsed files"
-find /mnt/data -type f -name "[D|d]esktop.ini" -delete
-find /mnt/data -type f -name "\~\$*" -delete
-find /mnt/data -type f -name "Thumbs.db" -delete
-find /mnt/data -type d -name ".recycle" -delete
-rm -Rf /share/Public/.bin/*
-rm -Rf /share/Users/*/.bin/
-for U in $(ls /share/Users); do
-  mkdir -p /share/Users/$U/.bin/
-done
-
-
 NAME=owncloud
 NAME_APP=/var/docker/owncloud
 VER_OLD=$(cat $DOCK_ENV | grep "OWNCLOUD_VERSION" | cut -d'=' -f2)

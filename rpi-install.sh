@@ -99,6 +99,25 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
     echored "* File $HOSTNAME-backup.conf is not found!"
     exit 1
   fi
+
+  echo "* [fs] Cleanup unsed files"
+  find /mnt/data -type f -name "[D|d]esktop.ini" -delete
+  find /mnt/data -type f -name "\~\$*" -delete
+  find /mnt/data -type f -name "Thumbs.db" -delete
+  find /mnt/data -type d -name ".recycle" -delete
+  rm -Rf /share/Public/.bin/*
+  rm -Rf /share/Users/*/.bin/
+  for U in $(ls /share/Users); do
+    mkdir -p /share/Users/$U/.bin/
+  done
+
+  echo "* [owncloud] Cleanup unsed files"
+  find /var/docker/owncloud/files/*/files_*/ -delete
+  find /var/docker/owncloud/files/*/thumbnails/* -delete
+  find /var/docker/owncloud/files/*/uploads/* -delete
+  find /var/docker/owncloud/files/*/cache/* -delete
+  docker exec -i owncloud /bin/bash -c "occ trashbin:cleanup"
+
   echo "* [Ubuntu] Backup files/folders into $CONF_FILE"
 
   BKP_PATH=$FILE_PATH/$HOSTNAME-backup
