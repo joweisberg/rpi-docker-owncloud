@@ -210,6 +210,8 @@ elif [ -n "$(echo $1 | grep '\-d=')" ] || [ -n "$(echo $1 | grep '\--domain=')" 
   echo "* [tzdata] Set timezone to $TZ"
   echo $TZ > /etc/timezone
   ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
+  #dpkg-reconfigure tzdata
+  timedatectl set-timezone $TZ
 
   echo "* [shell] Set aliases"
   cat << 'EOF' > .bash_aliases
@@ -218,6 +220,7 @@ alias topfiles='f() { du -hsx $2/* 2> /dev/null | sort -rh | head -n $1; }; f'
 alias cpsync-mini='rsync -rpthW --inplace --no-compress --exclude=.bin/ --delete --info=progress2'
 alias cpsync-full='rsync -ahW --inplace --no-compress --exclude=.bin/ --delete --info=progress2'
 alias docrec='f() { cd /home/media/docker-media; docker-compose up -d --no-deps --force-recreate $1; cd - > /dev/null; }; f'
+alias doclog='docker logs'
 alias docps='docker ps -a'
 alias docdf='docker system df'
 alias docprune='docker system prune --all --volumes --force'
@@ -312,6 +315,11 @@ EOF
 EOF
     sed -i 's/^#__ACME_COPY__//' $FILE_PATH/docker-media/docker-compose.yml
   fi
+
+  echo "* [journald] Limit size=100M and 3day of /var/log/journal"
+  sed -i 's/.*SystemMaxUse=.*/SystemMaxUse=200M/g' /etc/systemd/journald.conf
+  sed -i 's/.*MaxFileSec=.*/MaxFileSec=3day/g' /etc/systemd/journald.conf
+  systemctl restart systemd-journald
 
   echo "* [cronjob] Add backup data"
   cat << EOF >> /var/spool/cron/crontabs/root
@@ -640,7 +648,7 @@ EOF
 
   echo "* [docker] Install packages"
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-  add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  add-apt-repository -y "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   apt update > /dev/null 2>&1
   apt -y install docker-ce docker-compose jq
   usermod -aG docker media
@@ -651,9 +659,9 @@ EOF
   # Add sleep 20 before starting docker, prevent "accept tcp [::]:80: use of closed network connection" on Traefik
   #sed -i '/^ExecStart=.*/i ExecStartPre=/bin/sleep 20' /lib/systemd/system/docker.service
 
+  HOST=$(hostname -f | awk '{ print $1 }')
+  HOST_IP=$(hostname -I | awk '{ print $1 }')
   if [ -f $FILE_PATH/docker-media/.env ]; then
-    HOST=$(hostname -f | awk '{ print $1 }')
-    HOST_IP=$(hostname -I | awk '{ print $1 }')
     sed -i "s/^HOST=.*/HOST=$HOST/g" $FILE_PATH/docker-media/.env
     sed -i "s/^HOST_IP=.*/HOST_IP=$HOST_IP/g" $FILE_PATH/docker-media/.env
     sed -i "s/^DOMAIN=.*/DOMAIN=$DOMAIN/g" $FILE_PATH/docker-media/.env
