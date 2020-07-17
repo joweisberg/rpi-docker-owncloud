@@ -230,19 +230,22 @@ EOF
 
   echo "* [sshd] Setup service details"
   cat << EOF > /etc/ssh/sshd_config
+Protocol 2
 #Port 22
 #AddressFamily any
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-# Authentication:
-PermitRootLogin no
+# Authentication
 AllowUsers media
-PasswordAuthentication yes
 PermitEmptyPasswords no
+PermitRootLogin no
+PasswordAuthentication yes
 ChallengeResponseAuthentication no
-UsePAM yes
+UsePAM no
+MaxAuthTries 3
 
+ClientAliveInterval 180
 AllowTcpForwarding yes
 X11Forwarding yes
 PrintMotd no
