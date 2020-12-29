@@ -4,7 +4,7 @@ services:
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower:armhf-latest
-    command: --interval 3600 --cleanup --remove-volumes
+    command: --interval 86400 --cleanup --remove-volumes
     restart: unless-stopped
     env_file: .env
     volumes:

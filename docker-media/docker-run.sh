@@ -33,21 +33,33 @@ echo "* "
 echo "* "
 echo "* "
 echo "* Environment Variables:"
-echo "* HOST    = $HOST"
 echo "* HOST_IP = $HOST_IP"
+echo "* HOST    = $HOST"
 echo "* DOMAIN  = $DOMAIN"
 
 echo "* "
-echo "** Build and Start docker services"
+echo "** Stop docker services"
+echo "* "
 docker-compose down
 if [ $(docker ps -a -q | wc -l) -ne 0 ]; then
   docker stop $(docker ps -a -q)
   docker rm --volumes --force $(docker ps -a -q)
 fi
-kill $(fuser 80/tcp) > /dev/null 2>&1
-kill $(fuser 443/tcp) > /dev/null 2>&1
+sudo kill $(sudo fuser 80/tcp) > /dev/null 2>&1
+sudo kill $(sudo fuser 443/tcp) > /dev/null 2>&1
+
+echo "* "
+echo "** Build and Start docker services"
+echo "* "
 docker-compose up -d --remove-orphans
-docker system prune --all --volumes --force
+
+echo "* "
+echo -n "* Remove unused volumes and images? [Y/n] "
+read answer
+if [ -n "$(echo $answer | grep -i '^y')" ] || [ -z "$answer" ]; then
+  echo "* "
+  docker system prune --all --volumes --force
+fi
 
 cd - > /dev/null
 exit 0
