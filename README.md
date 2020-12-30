@@ -60,7 +60,7 @@ $ ln -sf /var/docker $HOME/docker
 
 4. Launch RPi installation
 
-Setup is located on $HOME/`rpi-install.env`
+Setup is located on $HOME/`os-install.env`
 * `TZ`: timezone name (like Etc/UTC or Europe/Paris)
 * `DOMAIN`: sub.example.com the domain name dns resolution
 * `ACME_COPY`: 1 to enable copy acme certificates to your router (used on $HOME/docker-media/docker-compose.yml > certs-extraction)
@@ -72,15 +72,15 @@ Samba users list:
 $ ssh media@rpi
 $ git clone https://github.com/joweisberg/rpi-docker-owncloud.git
 $ cp -pR rpi-docker-owncloud/* .
-$ sudo $HOME/rpi-install.sh 2>&1 | tee /var/log/rpi-install.log
+$ sudo $HOME/os-install.sh 2>&1 | tee /var/log/os-install.log
 ```
 
 5. Launch setup backup <u>(can be use after a complete setup)</u>
 
-Data to backup are located on $HOME/`rpi-backup.conf`
+Data to backup are located on $HOME/`os-backup.conf`
 ```bash
 $ ssh media@rpi
-$ sudo $HOME/rpi-install.sh --backup 2>&1 | tee /var/log/rpi-backup.log
+$ sudo $HOME/os-install.sh --backup 2>&1 | tee /var/log/os-backup.log
 ```
 
 6. Setup docker / onwcloud
