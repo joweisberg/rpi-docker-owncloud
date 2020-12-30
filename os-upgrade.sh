@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # Launch command:
-# sudo $HOME/rpi-upgrade.sh 2>&1 | tee /var/log/rpi-upgrade.log
-# sudo $HOME/rpi-upgrade.sh --quiet |& tee /var/log/rpi-upgrade.log
+# sudo $HOME/os-upgrade.sh 2>&1 | tee /var/log/os-upgrade.log
+# sudo $HOME/os-upgrade.sh --quiet |& tee /var/log/os-upgrade.log
 #
 # Restore backup data:
 # sudo -i
@@ -17,8 +17,8 @@
 #
 
 FILE_PATH=$(readlink -f $(dirname $0))  #/home/media
-FILE_NAME=$(basename $0)                #rpi-upgrade.sh
-FILE_NAME=${FILE_NAME%.*}               #rpi-upgrade
+FILE_NAME=$(basename $0)                #os-upgrade.sh
+FILE_NAME=${FILE_NAME%.*}               #os-upgrade
 FILE_DATE=$(date +'%Y%m%d-%H%M%S')
 FILE_LOG="/var/log/$FILE_NAME.log"
 FILE_MAIL="/var/log/$FILE_NAME-mail.log"
@@ -80,9 +80,9 @@ function fSendMail() {
   if [ -f $FILE_LOG ]; then
     if [ -n "$(cat $FILE_LOG | grep -Ei "error|failed")" ]; then
 
-      MSG_HEAD="Upgrade $HOSTNAME $OS_VER failed!\n\n$pkgInstalled packages are installed.\n$pkgUpgradable packages can be upgraded."
-      #echo -e "Subject: [$HOSTNAME@$DOMAIN] Upgrade @ $rundate\n\n$MSG_HEAD\n\n$(cat $FILE_LOG)" | msmtp $(whoami)
-      echo -e "$MSG_HEAD\n\n$(cat $FILE_LOG)" | mailx -s "[$HOSTNAME@$DOMAIN] Upgrade @ $rundate" -- $(whoami)
+      MSG_HEAD="Upgrade ended with errors!\nOS: $HOSTNAME $OS_VER - $KER_VER"
+      #echo -e "Subject: [$HOSTNAME@$DOMAIN] Upgrade\n\n$MSG_HEAD\n\n$(cat $FILE_LOG)" | msmtp $(whoami)
+      echo -e "$MSG_HEAD\n\n$(cat $FILE_LOG)" | mailx -s "[$HOSTNAME@$DOMAIN] Upgrade" -- $(whoami)
 
     elif [ -n "$(cat $FILE_LOG | grep "\[docker\] owncloud $OC_VER upgrade completed.")" ] || 
          [ -n "$(cat $FILE_LOG | grep "\[docker\] owncloud $OC_VER Third-Party Apps upgrade completed.")" ] || 
@@ -90,9 +90,9 @@ function fSendMail() {
          [ -n "$(cat $FILE_LOG | grep "\[Ubuntu\] Upgrade release")" ] || 
          [ -n "$(cat $FILE_LOG | grep "\[VBox\] Upgrade $VBOX_VER completed.")" ]; then
        
-      MSG_HEAD="Upgrade $HOSTNAME $OS_VER completed.\n\n$pkgInstalled packages are installed.\n$pkgUpgradable packages can be upgraded."
-      #echo -e "Subject: [$HOSTNAME@$DOMAIN] Upgrade @ $rundate\n\n$MSG_HEAD\n\n$(cat $FILE_LOG)" | msmtp $(whoami)
-      echo -e "$MSG_HEAD\n\n$(cat $FILE_MAIL)" | mailx -s "[$HOSTNAME@$DOMAIN] Upgrade @ $rundate" -a $FILE_LOG -- $(whoami)
+      MSG_HEAD="Upgrade completed.\nOS: $HOSTNAME $OS_VER - $KER_VER"
+      #echo -e "Subject: [$HOSTNAME@$DOMAIN] Upgrade\n\n$MSG_HEAD\n\n$(cat $FILE_LOG)" | msmtp $(whoami)
+      echo -e "$MSG_HEAD\n\n$(cat $FILE_MAIL)" | mailx -s "[$HOSTNAME@$DOMAIN] Upgrade" -a $FILE_LOG -- $(whoami)
     fi
   fi
 }
@@ -233,9 +233,10 @@ echo "* " | tee -a $FILE_MAIL
 echo "* [docker] $NAME Upgrade Third-Party Apps on Market, please wait..." | tee -a $FILE_MAIL
 OCC_APPS_LOG="/var/log/occ-upgrade-apps.log"
 rm -f $OCC_APPS_LOG
-docker exec -i $NAME /bin/bash -c "occ market:upgrade files_mediaviewer" >> $OCC_APPS_LOG
+docker exec -i $NAME /bin/bash -c "occ market:upgrade files_texteditor --major" >> $OCC_APPS_LOG
+docker exec -i $NAME /bin/bash -c "occ market:upgrade files_mediaviewer --major" >> $OCC_APPS_LOG
 for app in $(ls $NAME_APP/apps); do
-  docker exec -i $NAME /bin/bash -c "occ market:upgrade $app" >> $OCC_APPS_LOG
+  docker exec -i $NAME /bin/bash -c "occ market:upgrade $app --major" >> $OCC_APPS_LOG
 done
 if [ -f $OCC_APPS_LOG ] && [ $(cat $OCC_APPS_LOG | grep "App updated." | wc -l) -gt 0 ]; then
   cat $OCC_APPS_LOG | grep "App updated." | tee -a $FILE_MAIL
@@ -324,6 +325,8 @@ fi
 
 echo "* " | tee -a $FILE_MAIL
 echo "* [Ubuntu] Checking for new release, please wait..." | tee -a $FILE_MAIL
+# Linux 5.4.0-1019-raspi aarch64
+KER_VER="$(uname -sri)"
 # OS_VER="20.04.19"
 OS_VER="$(do-release-upgrade -V | cut -d' ' -f3)"
 LTS=""
@@ -332,8 +335,8 @@ if [ "$(cat /etc/update-manager/release-upgrades | grep "^Prompt" | cut -d'=' -f
   OS_VER="$OS_VER LTS"
   LTS="LTS"
 fi
-if [ -n "$(do-release-upgrade -m server --devel-release -c | grep 'New release')" ]; then
-  echo "* [Ubuntu] Upgrade release from $OS_VER to $(do-release-upgrade -m server --devel-release -c | grep 'New release' | cut -d"'" -f2) $LTS" | tee -a $FILE_MAIL
+if [ -n "$(do-release-upgrade -m server --devel-release -c | grep "New release")" ]; then
+  echo "* [Ubuntu] Upgrade release from $OS_VER to $(do-release-upgrade -m server --devel-release -c | grep "New release" | cut -d"'" -f2) $LTS" | tee -a $FILE_MAIL
   echo "* " | tee -a $FILE_MAIL
   echo "* Please run: sudo do-release-upgrade -m server --devel-release --quiet" | tee -a $FILE_MAIL
   #sudo do-release-upgrade -m server --devel-release --quiet
@@ -353,19 +356,33 @@ else
 fi
 
 
+# Post upgrade cleanup
+# rmdir: failed to remove '/lib/modules/5.4.0-1018-raspi': Directory not empty
+if [ -f $FILE_LOG ] && [ -n "$(cat $FILE_LOG | grep "rmdir: failed to remove '/lib/modules/")" ]; then
+  rm -R $(cat $FILE_LOG | grep "rmdir: failed to remove '/lib/modules/" | cut -d"'" -f2) > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    sed -i "/^rmdir: failed to remove '\/lib\/modules\//d" $FILE_LOG
+  fi
+fi
+# Installation finished. No error reported.
+if [ -f $FILE_LOG ] && [ -n "$(cat $FILE_LOG | grep "Installation finished. No error reported.")" ]; then
+  sed -i 's/^Installation finished. No error reported./Installation finished./g' $FILE_LOG
+fi
+
+
 if [ -f $FILE_LOG ] && [ -n "$(cat $FILE_LOG | grep -E "linux-firmware|linux-headers")" ]; then
   echo "* " | tee -a $FILE_MAIL
   echo "* " | tee -a $FILE_MAIL
   echo "* " | tee -a $FILE_MAIL
   if [ $QUIET -eq 1 ]; then
-    echo "* Reboot to complete the upgrade? [Y/n] y"
+    echo "* Rebooting to complete the upgrade..."
     answer="y"
   else
     echo -n "* Reboot to complete the upgrade? [Y/n] "
     read answer
   fi
-  echo "* Reboot to complete the upgrade? [Y/n] $answer" >> $FILE_MAIL
-  if [ -n "$(echo $answer | grep -i '^y')" ] || [ -z "$answer" ]; then
+  if [ -n "$(echo $answer | grep -i "^y")" ] || [ -z "$answer" ]; then
+    echo "* Rebooting to complete the upgrade..." >> $FILE_MAIL
     REBOOT=1
   fi
 fi
@@ -379,6 +396,6 @@ echo "* Elapsed time: $(($runtime / 3600))hrs $((($runtime / 60) % 60))min $(($r
 
 fSendMail
 if [ $REBOOT -eq 1 ]; then
-  sudo reboot
+  reboot
 fi
 exit 0

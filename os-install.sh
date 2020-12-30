@@ -2,21 +2,17 @@
 #
 # ssh ubuntu@ubuntu / ubuntu
 # sudo -i
-# (
-# echo "RPi.!#_" # New UNIX password
-# echo "Rpi.!#_" # Retype new UNIX password
-# ) | passwd
+# # New UNIX password
+# passwd
 # useradd -m -d /home/media -s /bin/bash -c "RPi's media user" -g users media
 # usermod -a -G adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,lxd,netdev,www-data,syslog media
 # usermod -g 100 media
-# (
-# echo "M&di@!" # New UNIX password
-# echo "M&di@!" # Retype new UNIX password
-# ) | passwd media
+# # New UNIX password
+# passwd media
 # echo "rpi" > /etc/hostname
 # reboot
-#
-# ssh media@rpi / M&di@!
+# 
+# ssh media@rpi / new_password
 # sudo -i
 # deluser ubuntu
 # rm -Rf /home/ubuntu
@@ -26,15 +22,15 @@
 # ln -sf /var/docker $HOME/docker
 #
 # Launch command:
-# sudo $HOME/rpi-install.sh --backup 2>&1 | tee /var/log/rpi-backup.log
-# sudo $HOME/rpi-install.sh 2>&1 | tee /var/log/rpi-install.log
+# sudo $HOME/os-install.sh --backup 2>&1 | tee /var/log/os-backup.log
+# sudo $HOME/os-install.sh 2>&1 | tee /var/log/os-install.log
 #
 # cpu=$(cat /sys/class/thermal/thermal_zone0/temp) && echo "CPU => $((cpu/1000))°C"
 #
 
 FILE_PATH=$(readlink -f $(dirname $0))  #/home/media
-FILE_NAME=$(basename $0)                #rpi-install.sh
-FILE_NAME=${FILE_NAME%.*}               #rpi-install
+FILE_NAME=$(basename $0)                #os-install.sh
+FILE_NAME=${FILE_NAME%.*}               #os-install
 FILE_DATE=$(date +'%Y%m%d-%H%M%S')
 FILE_LOG="/var/log/$FILE_NAME.log"
 
@@ -94,17 +90,17 @@ CONF_BASE="backup-$HOSTNAME"
 CONF_NAME="backup-$HOSTNAME-$(date +'%Y-%m-%d')"
 CONF_FILE="backup-$HOSTNAME-$(date +'%Y-%m-%d').tar.gz"
 if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
-  if [ ! -f $HOSTNAME-backup.conf ]; then
+  if [ ! -f os-backup.conf ]; then
     echo "* "
-    echored "* File $HOSTNAME-backup.conf is not found!"
+    echored "* File os-backup.conf is not found!"
     exit 1
   fi
 
   echo "* [fs] Cleanup unsed files"
-  find /mnt/data -type f -name "[D|d]esktop.ini" -delete
-  find /mnt/data -type f -name "\~\$*" -delete
-  find /mnt/data -type f -name "Thumbs.db" -delete
-  find /mnt/data -type d -name ".recycle" -delete
+  find /mnt/data -type f -name "[D|d]esktop.ini" -delete 2> /dev/null
+  find /mnt/data -type f -name "\~\$*" -delete 2> /dev/null
+  find /mnt/data -type f -name "Thumbs.db" -delete 2> /dev/null
+  find /mnt/data -type d -name ".recycle" -delete 2> /dev/null
   rm -Rf /share/Public/.bin/*
   rm -Rf /share/Users/*/.bin/
   for U in $(ls /share/Users); do
@@ -112,15 +108,15 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
   done
 
   echo "* [owncloud] Cleanup unsed files"
-  find /var/docker/owncloud/files/*/files_*/ -delete
-  find /var/docker/owncloud/files/*/thumbnails/* -delete
-  find /var/docker/owncloud/files/*/uploads/* -delete
-  find /var/docker/owncloud/files/*/cache/* -delete
+  find /var/docker/owncloud/files/*/files_*/ -delete 2> /dev/null
+  find /var/docker/owncloud/files/*/thumbnails/* -delete 2> /dev/null
+  find /var/docker/owncloud/files/*/uploads/* -delete 2> /dev/null
+  find /var/docker/owncloud/files/*/cache/* -delete 2> /dev/null
   docker exec -i owncloud /bin/bash -c "occ trashbin:cleanup"
 
   echo "* [Ubuntu] Backup files/folders into $CONF_FILE"
 
-  BKP_PATH=$FILE_PATH/$HOSTNAME-backup
+  BKP_PATH=$FILE_PATH/os-backup
   mkdir -p $BKP_PATH
   cd $BKP_PATH
 
@@ -131,21 +127,21 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
     ls -tr $CONF_BASE-* | head -n$NB
     ls -tr $CONF_BASE-* | head -n$NB | xargs rm -f
   fi
-
+  
   # Remove same existing file
   rm -f $CONF_NAME*
   # Create archive w/ list of files/folders
-  tar -cf $CONF_NAME.tar -T $FILE_PATH/$HOSTNAME-backup.conf > /dev/null 2>&1
-#  for obj in $(cat $FILE_PATH/$HOSTNAME-backup.conf | grep -v -e "^#" -e "^[[:space:]]*$"); do
-#    # Skip line starting with # and empty line
-#    if [ -f "$CONF_NAME.tar" ]; then
-#      # Add file/folder into existing archive
-#      tar -uf $CONF_NAME.tar $obj > /dev/null 2>&1
-#    else
-#      # Create archive w/ new file/folder
-#      tar -cf $CONF_NAME.tar $obj > /dev/null 2>&1
-#    fi
-#  done
+  tar -cf $CONF_NAME.tar -T $FILE_PATH/os-backup.conf > /dev/null 2>&1
+  for obj in $(cat $FILE_PATH/os-backup.conf | grep -v -e "^#" -e "^[[:space:]]*$"); do
+    # Skip line starting with # and empty line
+    if [ -f "$CONF_NAME.tar" ]; then
+      # Add file/folder into existing archive
+      tar -uf $CONF_NAME.tar $obj > /dev/null 2>&1
+    else
+      # Create archive w/ new file/folder
+      tar -cf $CONF_NAME.tar $obj > /dev/null 2>&1
+    fi
+  done
   gzip -f $CONF_NAME.tar
 
   chown -R media:users $BKP_PATH
@@ -156,7 +152,6 @@ if [ "$1" == "-b" ] || [ "$1" == "--backup" ]; then
   echo "* "
   echo "* "
   echo "* [Ubuntu] Backup completed."
-
   echo "* "
   echo "* End time: $(date)"
   runend=$(date +%s)
@@ -178,7 +173,7 @@ elif [ -n "$(echo $1 | grep '\-d=')" ] || [ -n "$(echo $1 | grep '\--domain=')" 
     echo "* "
     echo "* Please check in the current directory, if backup-$HOSTNAME-*.tar.gz file exists..."
     echo "* Or run: "
-    echoyellow "* sudo $FILE_PATH/$FILE_NAME.sh --backup 2>&1 | tee /var/log/$HOSTNAME-backup.log"
+    echoyellow "* sudo $FILE_PATH/$FILE_NAME.sh --backup 2>&1 | tee /var/log/os-backup.log"
     echo "* "
     echo "* "
     echo "* "
@@ -214,19 +209,30 @@ elif [ -n "$(echo $1 | grep '\-d=')" ] || [ -n "$(echo $1 | grep '\--domain=')" 
   timedatectl set-timezone $TZ
 
   echo "* [shell] Set aliases"
-  cat << 'EOF' > .bash_aliases
-alias ll='ls -alFh --color=auto'
-alias topfiles='f() { du -hsx $2/* 2> /dev/null | sort -rh | head -n $1; }; f'
-alias cpsync-mini='rsync -rpthW --inplace --no-compress --exclude=.bin/ --delete --info=progress2'
-alias cpsync-full='rsync -ahW --inplace --no-compress --exclude=.bin/ --delete --info=progress2'
-alias docrec='f() { cd /home/media/docker-media; docker-compose up -d --no-deps --force-recreate $1; cd - > /dev/null; }; f'
-alias doclog='docker logs'
-alias docps='docker ps -a'
-alias docdf='docker system df'
-alias docprune='docker system prune --all --volumes --force'
-alias cputemp='cpu=$(cat /sys/class/thermal/thermal_zone0/temp) && echo "CPU = $((cpu/1000))°C"'
-EOF
+  sed -i "s#/home/media#$FILE_PATH#g" .bash_aliases
   cp .bash_aliases /root
+  
+  echo "* [shell] Set bash colors"
+  cp .bash_colors /root
+  
+  apt -y install lm-sensors
+  echo "* [shell] Set system information command at login"
+  cp .bash_aliases /root
+  
+  echo "* [shell] Set system information command at login"
+  chmod +x os-info.sh
+  #ln -sf ~/os-info.sh /etc/profile.d/99-os-info.sh
+  cat << 'EOF' >> .bashrc
+
+# Change welcome message
+echo -n "* Show OS informations and status? [Y/n] "
+read answer
+if [ -n "$(echo $answer | grep -i '^y')" ] || [ -z "$answer" ]; then
+  ~/os-info.sh
+else
+  echo "* You can use 'osinfo' command alias later."
+fi
+EOF
 
   echo "* [sshd] Setup service details"
   cat << EOF > /etc/ssh/sshd_config
@@ -242,13 +248,16 @@ PermitEmptyPasswords no
 PermitRootLogin no
 PasswordAuthentication yes
 ChallengeResponseAuthentication no
-UsePAM no
 MaxAuthTries 3
 
+# Message after a successful login
+UsePAM no
+PrintMotd no
+
+# Network configuration
 ClientAliveInterval 180
 AllowTcpForwarding yes
 X11Forwarding yes
-PrintMotd no
 TCPKeepAlive yes
 Compression yes
 UseDNS no
@@ -256,7 +265,7 @@ UseDNS no
 AcceptEnv LANG LC_*
 Subsystem  sftp internal-sftp
 EOF
-
+  
   echo "* [user] Create media & the familly"
   # useradd -m -d /home/media -s /bin/bash -c "Media user" -g users media
   # usermod -a -G adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,lxd,netdev,www-data,syslog media
@@ -265,7 +274,7 @@ EOF
   # echo "M&di@!" # New UNIX password
   # echo "M&di@!" # Retype new UNIX password
   # ) | passwd media
-
+  
   # USER="Jonathan|passwd|Jonathan Weisberg"
   for L in $(cat $FILE_NAME.env | grep "^USER"); do
     # Get the value after =
@@ -277,7 +286,7 @@ EOF
 
     # User login to lowercase
     U=$(echo $V | cut -d'|' -f1 | awk '{print tolower($0)}')
-
+    
     # useradd -m -d /home/jonathan -s /bin/false -c "Jonathan Weisberg" -g users jonathan
     # usermod -a -G users jonathan
     # rm -Rf /home/jonathan
@@ -290,6 +299,23 @@ EOF
   apt -y install cifs-utils nfs-common
   echo "* [usbmount] Install packages"
   apt -y install ntfs-3g exfat-utils exfat-fuse
+  cat << EOF > /etc/systemd/system/usbmount.service
+[Unit]
+Description=USB automount
+
+After=local-fs.target network.target dbus.socket syslog.socket
+
+[Service]
+Type=simple
+ExecStart=$$FILE_PATH/usbmount.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  systemctl enable usbmount
+  
   echo "* [fstab] Attach USB data devices"
   #/dev/sda1: LABEL="home_data" UUID="7662-C355" TYPE="exfat" PARTUUID="6c727443-01"
   #/dev/sda1: LABEL="home_data" UUID="60E8C1B2E8C186AE" TYPE="ntfs" PARTUUID="68e32bcd-01"
@@ -314,8 +340,12 @@ EOF
     mkdir /mnt/openwrt-certs
     cat << EOF >> /etc/fstab
 # Attached devices
-//openwrt/OpenWrt-Certs$ /mnt/openwrt-certs cifs _netdev,guest,user=root,iocharset=utf8,vers=2.0 0 2
+//openwrt/OpenWrt-Certs$ /mnt/openwrt-certs cifs guest,user=root,iocharset=utf8,vers=2.0,noauto,x-systemd.automount,x-systemd.idle-timeout=30 0 2                                                                                                                                                
 EOF
+    # Remount CIFS on network reconnect by adding "noauto,x-systemd.automount,x-systemd.idle-timeout=30" and restart daemon
+    systemctl daemon-reload
+    systemctl restart mnt-openwrt\\x2dcerts.mount
+    systemctl restart mnt-openwrt\\x2dcerts.automount
     sed -i 's/^#__ACME_COPY__//' $FILE_PATH/docker-media/docker-compose.yml
   fi
 
@@ -327,9 +357,9 @@ EOF
   echo "* [cronjob] Add backup data"
   cat << EOF >> /var/spool/cron/crontabs/root
 # Packages upgrade automatically @06:00
-0 6 * * * $FILE_PATH/$HOSTNAME-upgrade.sh --quiet > /var/log/$HOSTNAME-upgrade.log 2>&1
+0 6 * * * $FILE_PATH/os-upgrade.sh --quiet > /var/log/os-upgrade.log 2>&1
 # Packages backup every Monday @05:55
-55 5 * * 1 $FILE_PATH/$HOSTNAME-install.sh --backup > /var/log/$HOSTNAME-backup.log 2>&1
+55 5 * * 1 $FILE_PATH/os-install.sh --backup > /var/log/os-backup.log 2>&1
 EOF
 
   echo "* [fs] Create directory /share "
@@ -454,7 +484,7 @@ EOF
 
     U=$(echo $V | cut -d'|' -f1)  #Samba User
     P=$(echo $V | cut -d'|' -f2)  #Samba User Password
-
+    
 #[Jonathan$]
 #  path=/share/Users/Jonathan
 #  comment=Jonathan's Folder
@@ -490,7 +520,7 @@ EOF
     echo $P # New SMB password
     echo $P # Retype new SMB password
     ) | smbpasswd -a $U
-
+    
     rm -Rf /share/Users/$U/.bin/*
   done
 
@@ -552,11 +582,19 @@ password J@hn2711.
 account default : none
 EOF
   cat << EOF > /etc/msmtp.aliases
-default: jo.weisberg@gmail.com
-root: jo.weisberg@gmail.com
+root: username@provider.com
+media: username@provider.com
 EOF
   rm -f /etc/msmtp.aliases
-  # echo -e "Subject: Power outage @ $(date)\n\n$(upsc el650usb)" | msmtp -a gmail $(whoami)
+  # echo "Hello this is sending email using mSMTP" | msmtp $(id -un)
+  # echo -e "Subject: Test mSMTP\r\nHello this is sending email using mSMTP" | msmtp $(id -un)
+  # echo -e "Subject: Power outage @ $(date)\r\n $(upsc el650usb)" | msmtp -a gmail $(whoami)
+  # echo -e "From: Pretty Name\r\nSubject: Example subject\r\nContent goes here." | msmtp --debug jo.weisberg@gmail.com
+  # Error:
+  # Allow access to unsecure apps
+  # https://myaccount.google.com/lesssecureapps
+  # msmtp: authentication failed (method PLAIN)
+  # https://accounts.google.com/DisplayUnlockCaptcha
 
   echo "* [Mutt] Setup email attachment encapsulation w/ mSMTP"
   # https://gist.github.com/ramn/1923071
@@ -564,7 +602,7 @@ EOF
   cat << EOF > /etc/muttrc
 # Sending mail
 set sendmail="/usr/bin/msmtp"
-set from = "no-reply@free.fr"
+set from = "no-reply@gmail.com"
 set realname = "htpc"
 set use_from=yes
 set envelope_from=yes
@@ -598,7 +636,7 @@ mkdir -p ~/.mutt/cache
 EOF
   ln -sf /usr/bin/mutt /usr/bin/mailx
   # echo "" | mutt -s "My Subject" -i body.txt -a attachment.txt -- recipient@example.com
-  # echo -e "My body message\n\rThks" | mutt -s "My Subject" -i body.txt -a attachment.txt -- recipient@example.com
+  # echo -e "My body message\r\nThks" | mutt -s "My Subject" -i body.txt -a attachment.txt -- recipient@example.com
   # cat body.txt | mutt -s "My Subject" -a attachment.txt -- recipient@example.com
   # upsc el650usb | mailx -s "Power outage @ $(date)" -- $(whoami)
 
@@ -648,21 +686,39 @@ EOF
   echo "* [iptables] Set firewall rules as persistent"
   iptables-restore < /etc/iptables/rules.v4
   systemctl enable netfilter-persistent
+  systemctl restart netfilter-persistent
+  #systemctl start docker
 
   echo "* [docker] Install packages"
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-  add-apt-repository -y "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  apt update > /dev/null 2>&1
-  apt -y install docker-ce docker-compose jq
+  # For older version than Ubuntu 20.04 LTS
+  if [ $(echo $VERSION_ID | sed 's/\.//') -lt 2004 ]; then
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+    add-apt-repository -y "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    apt update > /dev/null 2>&1
+    apt -y install docker-ce
+  #else
+    # docker-ce not supported from Ubuntu 20.04 LTS, use docker-compose only
+    
+    # apt-cache policy docker-compose
+    #docker-compose:
+    #  Installed: 1.25.0-1
+    #  Candidate: 1.25.0-1
+    #  Version table:
+    # *** 1.25.0-1 500
+    #        500 http://fr.archive.ubuntu.com/ubuntu focal/universe amd64 Packages
+    #        100 /var/lib/dpkg/status
+  fi
+  apt -y install docker-compose jq
   usermod -aG docker media
   echo "* [docker] Add dependency w/ netfilter-persistent"
-  sed -i 's/^After=.*/After=network-online.target netfilter-persistent.service containerd.service smbd.service/g' /lib/systemd/system/docker.service
-  #sed -i 's/firewalld.service/netfilter-persistent.service/g' /lib/systemd/system/docker.service
+  #sed -i 's/^After=.*/After=network-online.target netfilter-persistent.service containerd.service/g' /lib/systemd/system/docker.service
+  sed -i 's/firewalld.service/netfilter-persistent.service/g' /lib/systemd/system/docker.service
   #sed -i 's/^After=.*/& smbd.service/' /lib/systemd/system/docker.service
   # Add sleep 20 before starting docker, prevent "accept tcp [::]:80: use of closed network connection" on Traefik
   #sed -i '/^ExecStart=.*/i ExecStartPre=/bin/sleep 20' /lib/systemd/system/docker.service
+  systemctl enable docker
 
-  HOST=$(hostname -f | awk '{ print $1 }')
+  HOST=$(hostname -A | awk '{ print $1 }')
   HOST_IP=$(hostname -I | awk '{ print $1 }')
   if [ -f $FILE_PATH/docker-media/.env ]; then
     sed -i "s/^HOST=.*/HOST=$HOST/g" $FILE_PATH/docker-media/.env
