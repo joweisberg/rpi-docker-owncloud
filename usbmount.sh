@@ -1,5 +1,10 @@
 #!/bin/bash
 #
+# Mount attached USB devices to /media/usb{1..9}
+# Mount attached cdrom devices to /media/cdrom and then /media/cdrom{1..9}
+# Unmout attached devices automatically
+# Detect changes every 3s
+#
 
 USER_UID=$(id -u)
 ROOT_UID=0
@@ -16,7 +21,7 @@ while true; do
 
   # Detect umounted disk partitions
   # Loop on each mounted devices
-  for i in {0..9}; do
+  for i in {1..9}; do
     # Present on mounted partitions and not in connected partitions
     if [ -d /media/usb$i ] && [ -n "$(mount | grep "/media/usb$i")" ] && [ -z "$(lsblk | grep "/media/usb$i")" ]; then
       dev_part="$(mount | grep "/media/usb$i" | awk '{print $1}')"
@@ -30,8 +35,15 @@ while true; do
   done
 
   # Detect umounted cdrom partitions
+  # Not present on mounted partitions and not in connected partitions
+  if [ -d /media/cdrom ] && [ -z "$(mount | grep "/media/cdrom")" ] && [ -z "$(lsblk | grep "/media/cdrom")" ]; then
+    dev_part="$(mount | grep "/media/cdrom" | awk '{print $1}')"
+    umount /media/cdrom > /dev/null 2>&1
+    [ $? -eq 0 ] && echo "* Device $dev_part unmounted from /media/cdrom"
+    [ $(find /media/cdrom -maxdepth 5 -type f -print | wc -l) -eq 0 ] && rm -Rf /media/cdrom
+  fi
   # Loop on each mounted devices
-  for i in {0..9}; do
+  for i in {1..9}; do
     # Not present on mounted partitions and not in connected partitions
     if [ -d /media/cdrom$i ] && [ -z "$(mount | grep "/media/cdrom$i")" ] && [ -z "$(lsblk | grep "/media/cdrom$i")" ]; then
       dev_part="$(mount | grep "/media/cdrom$i" | awk '{print $1}')"
@@ -55,8 +67,8 @@ while true; do
       
       # No mount point detected
       if [ -z "$mountpoint" ]; then
-        # Mount on /media/usb0 or next available number
-        for i in {0..9}; do
+        # Mount on /media/usb1 or next available number
+        for i in {1..9}; do
           if [ ! -d /media/usb$i ]; then
             mkdir -p /media/usb$i
             uid=1000
@@ -82,8 +94,20 @@ while true; do
 
     # No mount point detected
     if [ -z "$mountpoint" ]; then
-      # Mount on /media/cdrom0 or next available number
-      for i in {0..9}; do
+      # Mount on /media/cdrom
+      if [ ! -d /media/cdrom ]; then
+        mkdir -p /media/cdrom
+        mount -t $fstype -o ro /dev/$name /media/cdrom > /dev/null
+        if [ $? -eq 0 ]; then
+          echo "* Device /dev/$name mounted on /media/cdrom"
+        #else
+        #  echo "* Error: mount -t $fstype /dev/$name /media/cdrom"
+        #  exit 1
+        fi
+        break
+      fi
+      # Mount on /media/cdrom1 or next available number
+      for i in {1..9}; do
         if [ ! -d /media/cdrom$i ]; then
           mkdir -p /media/cdrom$i
           mount -t $fstype -o ro /dev/$name /media/cdrom$i > /dev/null
