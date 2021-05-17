@@ -52,7 +52,10 @@ while true; do
       [ $(find /media/cdrom$i -maxdepth 5 -type f -print | wc -l) -eq 0 ] && rm -Rf /media/cdrom$i
     fi
   done
-
+  
+  
+  
+  
   # Loop on each connected disk devices
   for disk_name in $(lsblk | grep 'disk' | awk '/^sd[a-z] /{print $1}'); do
     #disk=$(lsblk -f | awk '/^sd[a-z] /{print $1}')
@@ -71,13 +74,20 @@ while true; do
         for i in {1..9}; do
           if [ ! -d /media/usb$i ]; then
             mkdir -p /media/usb$i
+            # Try to mount for fat, exFat or ntfs fs type
             uid=1000
-            mount -t $fstype -o nosuid,noexec,nodev,noatime,umask=0077,uid=$uid,gid=$(id -g $uid),iocharset=utf8 /dev/$part_name /media/usb$i > /dev/null
+            mount -t $fstype -o nosuid,noexec,nodev,noatime,umask=0077,uid=$uid,gid=$(id -g $uid),iocharset=utf8 /dev/$part_name /media/usb$i > /dev/null 2>&1
             if [ $? -eq 0 ]; then
               echo "* Partition /dev/$part_name mounted on /media/usb$i"
             else
-              echo "* Error: mount -t $fstype /dev/$part_name /media/usb$i"
-              exit 1
+              # Try to mount without options for others fs types, like ext2 or ext4
+              mount -t $fstype -o noatime /dev/$part_name /media/usb$i > /dev/null
+              if [ $? -eq 0 ]; then
+                echo "* Partition /dev/$part_name mounted on /media/usb$i"
+              else
+                echo "* Error: mount -t $fstype /dev/$part_name /media/usb$i"
+                #exit 1
+              fi
             fi
             break
           fi
@@ -97,12 +107,16 @@ while true; do
       # Mount on /media/cdrom
       if [ ! -d /media/cdrom ]; then
         mkdir -p /media/cdrom
-        mount -t $fstype -o ro /dev/$name /media/cdrom > /dev/null
-        if [ $? -eq 0 ]; then
+        res=$(mount -t $fstype -o ro /dev/$name /media/cdrom 2>&1)
+        ret=$?
+        # Remove unnecessary output
+        res=$(echo $res | sed '/mounted on/d')
+        res=$(echo $res | sed '/no medium found/d')
+        if [ $ret -eq 0 ]; then
           echo "* Device /dev/$name mounted on /media/cdrom"
-        #else
-        #  echo "* Error: mount -t $fstype /dev/$name /media/cdrom"
-        #  exit 1
+        elif [ -n "$res" ]; then
+          echo "* Error: mount -t $fstype /dev/$name /media/cdrom => $res"
+          #exit 1
         fi
         break
       fi
@@ -110,12 +124,16 @@ while true; do
       for i in {1..9}; do
         if [ ! -d /media/cdrom$i ]; then
           mkdir -p /media/cdrom$i
-          mount -t $fstype -o ro /dev/$name /media/cdrom$i > /dev/null
-          if [ $? -eq 0 ]; then
+          res=$(mount -t $fstype -o ro /dev/$name /media/cdrom$i 2>$1)
+          ret=$?
+          # Remove unnecessary output
+          res=$(echo $res | sed '/mounted on/d')
+          res=$(echo $res | sed '/no medium found/d')
+          if [ $ret -eq 0 ]; then
             echo "* Device /dev/$name mounted on /media/cdrom$i"
-          #else
-          #  echo "* Error: mount -t $fstype /dev/$name /media/cdrom$i"
-          #  exit 1
+          elif [ -n "$res" ]; then
+            echo "* Error: mount -t $fstype /dev/$name /media/cdrom => $res"
+            #exit 1
           fi
           break
         fi
