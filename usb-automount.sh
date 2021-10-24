@@ -124,7 +124,7 @@ while true; do
       for i in {1..9}; do
         if [ ! -d /media/cdrom$i ]; then
           mkdir -p /media/cdrom$i
-          res=$(mount -t $fstype -o ro /dev/$name /media/cdrom$i 2>$1)
+          res=$(mount -t $fstype -o ro /dev/$name /media/cdrom$i 2>&1)
           ret=$?
           # Remove unnecessary output
           res=$(echo $res | sed '/mounted on/d')

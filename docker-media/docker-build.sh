@@ -1,13 +1,16 @@
 #!/bin/bash
 
 FILE_PATH=$(readlink -f $(dirname $0))  #/home/media/docker-media
-FILE_NAME=$(basename $0)                #docker-run.sh
-FILE_NAME=${FILE_NAME%.*}               #docker-run
+FILE_NAME=$(basename $0)                #docker-build.sh
+FILE_NAME=${FILE_NAME%.*}               #docker-build
 FILE_DATE=$(date +'%Y%m%d-%H%M%S')
 FILE_LOG="/var/log/$FILE_NAME.log"
 
 HOST=$(hostname -A | awk '{ print $1 }')
 HOST_IP=$(hostname -I | awk '{ print $1 }')
+
+# Force sudo prompt at the begining
+sudo echo > /dev/null
 
 #if [ $(docker images local/certs-extraction | wc -l) -ne 2 ]; then
 #  echo "** Build image: local/certs-extraction"
@@ -42,11 +45,15 @@ echo "** Stop docker services"
 echo "* "
 docker-compose down
 if [ $(docker ps -a -q | wc -l) -ne 0 ]; then
+  echo "* "
+  echo "* Force to stop docker services"
   docker stop $(docker ps -a -q)
+  echo "* "
+  echo "* Force to remove docker volumes"
   docker rm --volumes --force $(docker ps -a -q)
 fi
-sudo kill $(sudo fuser 80/tcp) > /dev/null 2>&1
-sudo kill $(sudo fuser 443/tcp) > /dev/null 2>&1
+sudo fuser --kill 80/tcp > /dev/null 2>&1
+sudo fuser --kill 443/tcp > /dev/null 2>&1
 
 echo "* "
 echo "** Build and Start docker services"

@@ -66,7 +66,7 @@ Setup is located on $HOME/`os-install.env`
 * `ACME_COPY`: 1 to enable copy acme certificates to your router (used on $HOME/docker-media/docker-compose.yml > certs-extraction)
 
 Samba users list:
-* `USER`: < User Login>|< User Password <i>(can be empty)</i>>|< Full Name User / Description>
+* `USER`: < User Login>|< User Password <i>(can be empty)</i>>|< Full Name User / Description>|< User mail>
 
 ```bash
 $ ssh media@rpi
@@ -80,7 +80,7 @@ $ sudo $HOME/os-install.sh 2>&1 | tee /var/log/os-install.log
 Data to backup are located on $HOME/`os-backup.conf`
 ```bash
 $ ssh media@rpi
-$ sudo $HOME/os-install.sh --backup 2>&1 | tee /var/log/os-backup.log
+$ sudo $HOME/os-backup.sh
 ```
 
 6. Setup docker / onwcloud
@@ -91,7 +91,7 @@ Edit and adapt to your needs: $HOME/`docker-media/.env`
 
 ```bash
 $ ssh media@rpi
-$ cd $HOME/docker-media && ./docker-run.sh
+$ cd $HOME/docker-media && ./docker-build.sh
 ```
 
 7. RPi web access:

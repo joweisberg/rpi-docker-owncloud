@@ -83,7 +83,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.glances.entrypoints=web"
-      - "traefik.http.routers.glances.rule=Host(`monitoring.$HOST`)"
+      - "traefik.http.routers.glances.rule=Host(`monit.$HOST`)"
       - "traefik.http.routers.glances.service=glances"
       - "traefik.http.services.glances.loadbalancer.server.port=61208"
     depends_on:
@@ -154,15 +154,15 @@ services:
 #      - "traefik.http.services.owncloud.loadbalancer.server.port=443"
       - "traefik.http.routers.owncloud.tls.certresolver=letsencrypt"
       - "traefik.http.middlewares.owncloud-prefix.stripprefix.prefixes=/owncloud"
-      - "traefik.http.routers.owncloud.middlewares=secure-headers@file,owncloud-prefix"
+      - "traefik.http.routers.owncloud.middlewares=websecure-headers@file,owncloud-prefix"
     depends_on:
       - traefik
       - redis
     env_file: .env
     environment:
       - OWNCLOUD_DOMAIN=$DOMAIN
-      - OWNCLOUD_ADMIN_USERNAME=admin
-      - OWNCLOUD_ADMIN_PASSWORD=owncloud
+      - OWNCLOUD_ADMIN_USERNAME=owncloud
+      - OWNCLOUD_ADMIN_PASSWORD=OwnCloud@!
       - OWNCLOUD_REDIS_ENABLED=true
       - OWNCLOUD_REDIS_HOST=redis
     healthcheck:

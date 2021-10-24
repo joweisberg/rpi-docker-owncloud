@@ -3,12 +3,12 @@
     entryPoints = ["websecure"]
     rule = "Host(`sub.example.com`)"
     service = "openwrt"
-    middlewares = ["secure-headers"]
+    middlewares = ["websecure-headers"]
     [http.routers.openwrt.tls]
       certresolver = "letsencrypt"
 
 [http.middlewares]
-  [http.middlewares.secure-headers.headers]
+  [http.middlewares.websecure-headers.headers]
     sslRedirect = true
     stsSeconds = 31536000
     stsIncludeSubdomains = true
