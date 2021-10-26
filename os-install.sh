@@ -127,8 +127,10 @@ echo "* [shell] Set aliases"
 cat << 'EOF' > .bash_aliases
 alias ll='ls -alFh --color=auto'
 alias topfiles='f() { du -hsx $2/* 2> /dev/null | sort -rh | head -n $1; }; f'
-alias cpmini='rsync -rpthW --inplace --no-compress --exclude=.bin/ --info=progress2'
-alias cpfull='rsync -ahW --inplace --no-compress --exclude=.bin/ --info=progress2'
+# Copy with incremental progress bar
+alias cpsync='rsync -rpthW --inplace --no-compress --exclude=.bin/ --info=progress2'
+# Copy with incremental progress bar and preserve rights
+alias cpsyncP='rsync -ahW --inplace --no-compress --exclude=.bin/ --info=progress2'
 alias osinfo='/home/media/os-info.sh'
 alias osbackup='/home/media/os-install.sh --backup 2>&1 | tee /var/log/os-backup.log'
 alias osupgrade='/home/media/os-upgrade.sh 2>&1 | tee /var/log/os-upgrade.log'
