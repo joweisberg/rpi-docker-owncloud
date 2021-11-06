@@ -41,9 +41,9 @@ fi
 
 # Show OS informations and status
 echo
-echo -n "* Show OS informations and status? [Y/n] "
+echo -n "* Show OS informations and status? [y/N] "
 read answer
-if [ -n "$(echo $answer | grep -i '^y')" ] || [ -z "$answer" ]; then
+if [ -n "$(echo $answer | grep -i '^y')" ]; then
   ~/os-info.sh
 else
   echo "* You can use 'osinfo' command alias later."

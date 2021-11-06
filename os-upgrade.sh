@@ -29,11 +29,11 @@ function fFilePsUnlockRm() {
 }
 
 function fSendMail() {
-  if [ -n "$(cat $FILE_LOG_ERRORS > /dev/null 2>&1 | grep -Ei "error|failed")" ]; then
+  if [ -n "$(cat $FILE_LOG_ERRORS | grep -Ei "error|failed")" ]; then
     MSG_HEAD="Upgrade ended with errors!\nOS: $HOSTNAME $OS_VER - $KER_VER"
     echo -e "$MSG_HEAD\n\n$(cat $FILE_LOG_ERRORS)" | mailx -s "[$HOSTNAME@$DOMAIN] Upgrade" -- $(whoami)
 
-  elif [ -n "$(cat $FILE_LOG > /dev/null 2>&1 | grep -Ei "completed")" ]; then
+  elif [ -n "$(cat $FILE_LOG | grep -Ei "completed")" ]; then
     MSG_HEAD="Upgrade is completed.\nOS: $HOSTNAME $OS_VER - $KER_VER"
     #echo -e "$MSG_HEAD\n\n$(cat $FILE_LOG)" | mailx -s "[$HOSTNAME@$DOMAIN] Upgrade" -a $FILE_LOG_ERRORS -- $(whoami)
     echo -e "$MSG_HEAD\n\n$(cat $FILE_LOG)" | mailx -s "[$HOSTNAME@$DOMAIN] Upgrade" -- $(whoami)
@@ -63,6 +63,10 @@ if [ "$(cat /etc/update-manager/release-upgrades | grep "^Prompt" | cut -d'=' -f
   OS_VER="$OS_VER LTS"
   LTS="LTS"
 fi
+
+# Force apt to work automatic and unattended mode
+export NEEDRESTART_MODE=a
+export DEBIAN_FRONTEND=noninteractive
 
 ###############################################################################
 ### Pre-Script
@@ -146,7 +150,7 @@ if [ "$(date +'%a')" == "Fri" ]; then
 
   if [ $(dpkg --list | grep -E "linux-image-[0-9]+|linux-headers-[0-9]+" | grep -v $(uname -r | sed 's/-generic//g') | wc -l) -gt 0 ]; then
     echo "* [dpkg] Remove All Unused Linux Kernel Headers and Images" | tee -a $FILE_LOG $FILE_LOG_ERRORS
-    dpkg --list | grep -E "linux-image-|linux-headers-" | grep -v $(uname -r | sed 's/-generic//g') | awk '{print $2}' | xargs apt -y remove --purge 2>&1 | tee -a $FILE_LOG_ERRORS
+    dpkg --list | grep -E "linux-image-|linux-headers-" | grep -v $(uname -r | sed 's/-generic//g') | awk '{print $2}' | xargs apt -yq remove --purge 2>&1 | tee -a $FILE_LOG_ERRORS
     update-initramfs -u 2>&1 | tee -a $FILE_LOG_ERRORS
   fi
 fi
@@ -209,7 +213,7 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     apt list --upgradable 2> /dev/null | awk '/upgradable/{print $1}' | awk -F/ '{print $1}' | grep -vE "$pkgDowngradeList" | sed 's/^/- /' | tee -a $FILE_LOG $FILE_LOG_ERRORS
 
     # Run partial upgrade packages
-    apt list --upgradable 2> /dev/null | awk '/upgradable/{print $1}' | awk -F/ '{print $1}' | grep -vE "$pkgDowngradeList" | xargs apt -y upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
+    apt list --upgradable 2> /dev/null | awk '/upgradable/{print $1}' | awk -F/ '{print $1}' | grep -vE "$pkgDowngradeList" | xargs apt -yq upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
     if [ $? -ne 0 ]; then
       echored "* [apt] Upgrade command failed! \nPlease check the log..."
       echo "* [apt] Upgrade command failed! \nPlease check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
@@ -223,7 +227,7 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     apt list --upgradable 2> /dev/null | awk '/upgradable/{print $1}' | awk -F/ '{print $1}' | sed 's/^/- /' | tee -a $FILE_LOG $FILE_LOG_ERRORS
 
     # Run upgrade packages
-    apt -y upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
+    apt -yq upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
     if [ $? -ne 0 ]; then
       echored "* [apt] Upgrade command failed! \nPlease check the log..."
       echo "* [apt] Upgrade command failed! \nPlease check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
@@ -238,7 +242,7 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
   if [ $pkgUpgradable -gt 0 ]; then
     echo "* [Ubuntu] Upgrade distribution"
     # Run dist-upgrade packages
-    apt -y dist-upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
+    apt -yq dist-upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
     if [ $? -ne 0 ]; then
       echored "* [apt] Dist-Upgrade command failed! \nPlease check the log..."
       echo "* [apt] Dist-Upgrade command failed! \nPlease check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
@@ -247,7 +251,7 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     fi
 
     # Remove unused packages
-    apt -y autoremove 2>&1 | tee -a $FILE_LOG_ERRORS
+    apt -yq autoremove 2>&1 | tee -a $FILE_LOG_ERRORS
 
     # Fix docker dependency w/ netfilter-persistent
     if [ $(cat /lib/systemd/system/docker.service | grep netfilter-persistent | wc -l) -eq 0 ]; then
@@ -271,7 +275,6 @@ echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
 echo "* [Ubuntu] Checking for new release, please wait..." | tee -a $FILE_LOG $FILE_LOG_ERRORS
 if [ -n "$(do-release-upgrade -m server --devel-release -c | grep "New release")" ]; then
   echo "* [Ubuntu] Upgrade release from $OS_VER to $(do-release-upgrade -m server --devel-release -c | grep "New release" | cut -d"'" -f2) $LTS" | tee -a $FILE_LOG $FILE_LOG_ERRORS
-  echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
   echo "* Please run: sudo do-release-upgrade -m server --devel-release --quiet" | tee -a $FILE_LOG $FILE_LOG_ERRORS
   #do-release-upgrade -m server --devel-release --quiet
   if [ $? -ne 0 ]; then

@@ -169,9 +169,9 @@ fi
 
 # Show OS informations and status
 echo
-echo -n "* Show OS informations and status? [Y/n] "
+echo -n "* Show OS informations and status? [y/N] "
 read answer
-if [ -n "$(echo $answer | grep -i '^y')" ] || [ -z "$answer" ]; then
+if [ -n "$(echo $answer | grep -i '^y')" ]; then
 ~/os-info.sh
 else
 echo "* You can use 'osinfo' command alias later."
@@ -676,11 +676,14 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT -m comment --comment "ssh"
 iptables -A INPUT -p tcp --dport 80 -j ACCEPT -m comment --comment "http"
 iptables -A INPUT -p tcp --dport 443 -j ACCEPT -m comment --comment "https"
-iptables -A INPUT -p udp -m multiport --dports 137,138 -j ACCEPT -m comment --comment "samba"
-iptables -A INPUT -p tcp -m multiport --dports 139,445 -j ACCEPT -m comment --comment "samba"
+iptables -A INPUT -p udp --dport 137 -j ACCEPT -m comment --comment "Samba NetBIOS name service (WINS)"
+iptables -A INPUT -p udp --dport 138 -j ACCEPT -m comment --comment "Samba NetBIOS datagram"
+iptables -A INPUT -p tcp --dport 139 -j ACCEPT -m comment --comment "Samba NetBIOS Session, Windows File and Printer Sharing"
+iptables -A INPUT -p tcp --dport 445 -j ACCEPT -m comment --comment "Samba Microsoft-DS Active Directory, Windows shares"
+iptables -A INPUT -p udp --dport 445 -j ACCEPT -m comment --comment "Samba Microsoft-DS SMB file sharing"
 iptables -A INPUT -i docker0 -j ACCEPT
-iptables -A FORWARD -i docker0 -o $(ip -o -4 route show to default | awk '{print $5}') -j ACCEPT
-iptables -A FORWARD -i $(ip -o -4 route show to default | awk '{print $5}') -o docker0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i docker0 -o $(ip -o -4 route show to default | head -n1 | awk '{print $5}') -j ACCEPT
+iptables -A FORWARD -i $(ip -o -4 route show to default | head -n1 | awk '{print $5}') -o docker0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -P INPUT DROP
 iptables -P FORWARD DROP
 iptables-save > /etc/iptables/rules.v4
