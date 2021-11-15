@@ -54,7 +54,7 @@ STANDALONE=1
 runstart=$(date +%s)
 [ $STANDALONE -eq 1 ] && echo "* Command: $0 $@" | tee -a $FILE_LOG $FILE_LOG_ERRORS
 [ $STANDALONE -eq 1 ] && echo "* Start time: $(date)" | tee -a $FILE_LOG $FILE_LOG_ERRORS
-echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
+[ $STANDALONE -eq 1 ] && echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
 
 BKP_PATH=$FILE_PATH/$FILE_NAME
 BKP_BASE="backup-$HOSTNAME"

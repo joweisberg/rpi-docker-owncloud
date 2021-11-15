@@ -182,7 +182,7 @@ runstart=$(date +%s)
 [ $STANDALONE -eq 1 ] && [ $TEST -eq 1 ] && echo -e "* \n* Test mode: enabled" | tee -a $FILE_LOG $FILE_LOG_ERRORS
 [ $STANDALONE -eq 1 ] && echo -e "* \n* Command type: $TYPE" | tee -a $FILE_LOG $FILE_LOG_ERRORS
 
-echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
+[ $STANDALONE -eq 1 ] && echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
 case "$TYPE" in
   "install")
     # Do not interprate space in variable during for loop

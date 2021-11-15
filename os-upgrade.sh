@@ -124,6 +124,7 @@ echo -e "* \n* Command type: $TYPE" | tee -a $FILE_LOG $FILE_LOG_ERRORS
 
 if [ "$(date +'%a')" == "Fri" ]; then
   
+  echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
   ./owncloud.sh --cleanup
 
   echo "* [fs] Purge unused files in /mnt/data" | tee -a $FILE_LOG $FILE_LOG_ERRORS
@@ -156,6 +157,7 @@ if [ "$(date +'%a')" == "Fri" ]; then
 fi
 
 
+echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
 ./owncloud.sh --upgrade
 
 
@@ -275,7 +277,8 @@ echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
 echo "* [Ubuntu] Checking for new release, please wait..." | tee -a $FILE_LOG $FILE_LOG_ERRORS
 if [ -n "$(do-release-upgrade -m server --devel-release -c | grep "New release")" ]; then
   echo "* [Ubuntu] Upgrade release from $OS_VER to $(do-release-upgrade -m server --devel-release -c | grep "New release" | cut -d"'" -f2) $LTS" | tee -a $FILE_LOG $FILE_LOG_ERRORS
-  echo "* Please run: sudo do-release-upgrade -m server --devel-release --quiet" | tee -a $FILE_LOG $FILE_LOG_ERRORS
+  echo "* Please check: https://wiki.ubuntu.com/Releases" | tee -a $FILE_LOG $FILE_LOG_ERRORS
+  echo "* And run, if required: sudo do-release-upgrade -m server --devel-release --quiet" | tee -a $FILE_LOG $FILE_LOG_ERRORS
   #do-release-upgrade -m server --devel-release --quiet
   if [ $? -ne 0 ]; then
     echored "* [Ubuntu] Do-Release-Upgrade command failed! \nPlease check the log..."
