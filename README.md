@@ -6,6 +6,7 @@
 * Clone the image to SD Card with [Rufus](https://sourceforge.net/projects/rufus.mirror/files/latest/download)
 * Your favorite terminal, [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) or [MobaXterm](https://mobaxterm.mobatek.net/download.html)
 * `Add hostname` or static lease on your router `to target RPi IP address` (and the `Local domain: local`) (for local reverse-proxy setup):
+  * media.rpi.local
   * monitoring.rpi.local
   * proxy.rpi.local
   * docker.rpi.local
@@ -96,7 +97,7 @@ $ cd $HOME/docker-media && ./docker-build.sh
 
 7. RPi web access:
 
-* http://rpi.local/ - RPi console management
+* http://media.rpi.local/ - RPi console management
 ![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/main/.img/muximux.png)
 * https://sub.example.com/owncloud (default login/password: admin/owncloud)
 ![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/main/.img/owncloud.png)
