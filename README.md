@@ -1,4 +1,4 @@
-# Raspberry Pi based on Ubuntu - install script w/ smb, docker, traefik, portainer, muximux, glances, owncloud
+# Raspberry Pi based on Ubuntu - install script w/ smb, docker, watchtower, traefik, portainer, glances, certs-extraction, muximux, owncloud
 
 ## Requirements
 * Micro-SD Card 16Go or more
