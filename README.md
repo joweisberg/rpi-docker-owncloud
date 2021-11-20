@@ -1,4 +1,4 @@
-# Raspberry Pi based on Ubuntu - install script w/ smb, docker, traefik, owncloud, glances, muximux
+# Raspberry Pi based on Ubuntu - install script w/ smb, docker, traefik, portainer, muximux, glances, owncloud
 
 ## Requirements
 * Micro-SD Card 16Go or more
@@ -7,7 +7,7 @@
 * Your favorite terminal, [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) or [MobaXterm](https://mobaxterm.mobatek.net/download.html)
 * `Add hostname` or static lease on your router `to target RPi IP address` (and the `Local domain: local`) (for local reverse-proxy setup):
   * media.rpi.local
-  * monitoring.rpi.local
+  * monit.rpi.local
   * proxy.rpi.local
   * docker.rpi.local
 * On your main router, `open firewall tcp ports` 80, 443 forward to target your RPi IP address
