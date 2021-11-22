@@ -20,9 +20,9 @@
 * [UGREEN Quick Charge 3.0 Chargeur Secteur USB Rapide 18W 3A QC 3.0](https://www.amazon.fr/gp/product/B07H4NCJ6L)
 * [CSL - Câble Ethernet plat 0,5m - RJ45 Cat 6](https://www.amazon.fr/gp/product/B014FBKY0K)
 
-![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/main/.img/rpi_1.png)
-![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/main/.img/rpi_2.png)
-![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/main/.img/rpi_3.png)
+![](.img/rpi_1.png)
+![](.img/rpi_2.png)
+![](.img/rpi_3.png)
 
 ## Install steps
 1. Write SD card with the preinstalled image w/ Rufus, and power on the RPi
@@ -98,6 +98,6 @@ $ cd $HOME/docker-media && ./docker-build.sh
 7. RPi web access:
 
 * http://media.rpi.local/ - RPi console management
-![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/main/.img/muximux.png)
+![](.img/muximux.png)
 * https://sub.example.com/owncloud (default login/password: admin/owncloud)
-![](https://raw.githubusercontent.com/joweisberg/rpi-docker-owncloud/main/.img/owncloud.png)
+![](.img/owncloud.png)
