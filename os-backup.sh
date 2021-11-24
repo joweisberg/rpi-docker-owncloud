@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # Launch command:
-# sudo $HOME/os-backup.sh 2>&1 | tee /var/log/os-backup.log
-# sudo $HOME/os-backup.sh --restore 2>&1 | tee /var/log/os-backup.log
+# sudo $HOME/os-backup.sh
+# sudo $HOME/os-backup.sh --restore
 #
 
 # Add /sbin path for linux command
@@ -24,8 +24,6 @@ FILE_LOG_ERRORS="${FILE_LOG_ERRORS:-/var/log/$FILE_NAME.err}"
 # Source under this script directory
 cd $(readlink -f $(dirname $0))
 . .bash_colors
-
-# Source environment variables
 . os-install.env > /dev/null 2>&1
 
 ROOT_UID=$(id -u root)
