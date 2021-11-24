@@ -132,8 +132,8 @@ alias cpsync='rsync -rpthW --inplace --no-compress --exclude=.bin/ --info=progre
 # Copy with incremental progress bar and preserve rights
 alias cpsyncP='rsync -ahW --inplace --no-compress --exclude=.bin/ --info=progress2'
 alias osinfo='/home/media/os-info.sh'
-alias osbackup='/home/media/os-install.sh --backup 2>&1 | tee /var/log/os-backup.log'
-alias osupgrade='/home/media/os-upgrade.sh 2>&1 | tee /var/log/os-upgrade.log'
+alias osbackup='/home/media/os-backup.sh'
+alias osupgrade='/home/media/os-upgrade.sh --auto'
 alias doclog='docker logs'
 alias docres='docker restart'
 alias docrec='f() { cd /home/media/docker-media; docker-compose up -d --no-deps --force-recreate $1; cd - > /dev/null; }; f'
