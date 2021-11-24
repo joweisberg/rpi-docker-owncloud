@@ -209,6 +209,7 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     fFilePsUnlockRm /var/lib/apt/lists/lock-frontend
     fFilePsUnlockRm /var/cache/apt/archives/lock
   fi
+  
   if [ $pkgUpgradable -gt 0 ] && [ $pkgDowngradeNb -gt 0 ]; then
     echo "* " | tee -a $FILE_LOG $FILE_LOG_ERRORS
     echo "* [Ubuntu] Partial Upgrade packages" | tee -a $FILE_LOG $FILE_LOG_ERRORS
@@ -217,8 +218,8 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     # Run partial upgrade packages
     apt list --upgradable 2> /dev/null | awk '/upgradable/{print $1}' | awk -F/ '{print $1}' | grep -vE "$pkgDowngradeList" | xargs apt -yq upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
     if [ $? -ne 0 ]; then
-      echored "* [apt] Upgrade command failed! \nPlease check the log..."
-      echo "* [apt] Upgrade command failed! \nPlease check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
+      echored "* [apt] Upgrade command failed! Please check the log..."
+      echo "* [apt] Upgrade command failed! Please check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
       [ $UPG_AUTO -eq 1 ] && fSendMail
       exit 1
     fi
@@ -231,8 +232,8 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     # Run upgrade packages
     apt -yq upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
     if [ $? -ne 0 ]; then
-      echored "* [apt] Upgrade command failed! \nPlease check the log..."
-      echo "* [apt] Upgrade command failed! \nPlease check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
+      echored "* [apt] Upgrade command failed! Please check the log..."
+      echo "* [apt] Upgrade command failed! Please check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
       [ $UPG_AUTO -eq 1 ] && fSendMail
       exit 1
     fi
@@ -246,8 +247,8 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     # Run dist-upgrade packages
     apt -yq dist-upgrade 2>&1 | tee -a $FILE_LOG_ERRORS
     if [ $? -ne 0 ]; then
-      echored "* [apt] Dist-Upgrade command failed! \nPlease check the log..."
-      echo "* [apt] Dist-Upgrade command failed! \nPlease check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
+      echored "* [apt] Dist-Upgrade command failed! Please check the log..."
+      echo "* [apt] Dist-Upgrade command failed! Please check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
       [ $UPG_AUTO -eq 1 ] && fSendMail
       exit 1
     fi
@@ -266,7 +267,7 @@ elif [ $(echo "$answer" | grep -i "^y") ] || [ -z "$answer" ]; then
     echoblue "* [Ubuntu] Upgrade is completed."
     echo "* [Ubuntu] Upgrade is completed." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
   fi
-
+  
 else
   echored "* [Ubuntu] is not updated."
   echo "* [Ubuntu] is not updated." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
@@ -281,8 +282,8 @@ if [ -n "$(do-release-upgrade -m server --devel-release -c | grep "New release")
   echo "* And run, if required: sudo do-release-upgrade -m server --devel-release --quiet" | tee -a $FILE_LOG $FILE_LOG_ERRORS
   #do-release-upgrade -m server --devel-release --quiet
   if [ $? -ne 0 ]; then
-    echored "* [Ubuntu] Do-Release-Upgrade command failed! \nPlease check the log..."
-    echo "* [Ubuntu] Do-Release-Upgrade command failed! \nPlease check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
+    echored "* [Ubuntu] Do-Release-Upgrade command failed! Please check the log..."
+    echo "* [Ubuntu] Do-Release-Upgrade command failed! Please check the log..." | tee -a $FILE_LOG $FILE_LOG_ERRORS > /dev/null
     [ $UPG_AUTO -eq 1 ] && fSendMail
     exit 1
   fi
