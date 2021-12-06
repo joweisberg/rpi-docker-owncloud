@@ -16,8 +16,8 @@ function fShowStatus() {
 
 # Source under this script directory
 cd $(readlink -f $(dirname $0))
-. os-install.env
 . .bash_colors
+. .env
 . /etc/os-release
 export DISPLAY=:0
 

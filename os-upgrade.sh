@@ -46,7 +46,7 @@ function fSendMail() {
 # Source under this script directory
 cd $(readlink -f $(dirname $0))
 . .bash_colors
-. os-install.env
+. .env
 
 ROOT_UID=$(id -u root)
 USER_UID=$(id -u)

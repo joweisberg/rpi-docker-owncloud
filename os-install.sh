@@ -50,17 +50,14 @@ export FILE_MAIL="/var/log/$FILE_NAME-mail.log"
 # Source under this script directory
 cd $(readlink -f $(dirname $0))
 . .bash_colors
-
-# Source OS details (for VERSION_ID)
+. .env
 . /etc/os-release
-
-# Source environment variables
-ACME_COPY=0
-. os-install.env > /dev/null 2>&1
 
 ROOT_UID=$(id -u root)
 USER_UID=$(id -u)
 USER=$(id -un)
+
+ACME_COPY=0
 
 ###############################################################################
 ### Pre-Script
@@ -576,21 +573,21 @@ tls_starttls on
 #from no-reply@gmail.com
 auth on
 #maildomain gmail.com
-user myusername
-password mypassword
+user jo.weisberg
+password J@hn2711.
 
 # Set a default account
 account default : gmail
 EOF
 cat << EOF > /etc/msmtp.aliases
-root: myusername@gmail.com
-$USER: myusername@gmail.com
+root: jo.weisberg@gmail.com
+$USER: jo.weisberg@gmail.com
 EOF
 rm -f /etc/msmtp.aliases
 # echo "Hello this is sending email using mSMTP" | msmtp $(id -un)
 # echo -e "Subject: Test mSMTP\r\nHello this is sending email using mSMTP" | msmtp $(id -un)
 # echo -e "Subject: Power outage @ $(date)\r\n $(upsc el650usb)" | msmtp -a gmail $(whoami)
-# echo -e "From: Pretty Name\r\nSubject: Example subject\r\nContent goes here." | msmtp --debug myusername@gmail.com
+# echo -e "From: Pretty Name\r\nSubject: Example subject\r\nContent goes here." | msmtp --debug jo.weisberg@gmail.com
 # Error:
 # Allow access to unsecure apps
 # https://myaccount.google.com/lesssecureapps
@@ -607,8 +604,8 @@ set from = "no-reply@gmail.com"
 set realname = "htpc"
 set use_from=yes
 set envelope_from=yes
-set smtp_url = "smtp://myusername@smtp.gmail.com:587/"
-set smtp_pass = "mypassword"
+set smtp_url = "smtp://jo.weisberg@smtp.gmail.com:587/"
+set smtp_pass = "J@hn2711."
 #set smtp_url = "smtp://smtp.free.fr:25/"
 #set smtp_pass = ""
 
@@ -623,8 +620,8 @@ source /etc/mutt.aliases
 set move = no
 EOF
 cat << EOF > /etc/mutt.aliases
-alias root myusername@gmail.com
-alias $USER myusername@gmail.com
+alias root jo.weisberg@gmail.com
+alias $USER jo.weisberg@gmail.com
 EOF
 
 sudo -i -u root bash << EOF

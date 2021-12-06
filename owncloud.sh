@@ -76,9 +76,7 @@ function fDockerImageTagExists() {
 # Source under this script directory
 cd $(readlink -f $(dirname $0))
 . .bash_colors
-
-# Source environment variables
-. os-install.env
+. .env
 
 ROOT_UID=$(id -u root)
 USER_UID=$(id -u)
@@ -205,7 +203,7 @@ case "$TYPE" in
     echo "* [owncloud] Set configuration"
     echo "* "
     docker exec -i $NAME /bin/bash -c "occ config:system:set logtimezone --value='Europe/Paris'" | sed 's/^/** /'
-    sed -i "/^);/i \  'mail_domain' => 'gmail.com',\n  'mail_from_address' => 'no-reply',\n  'mail_smtpmode' => 'smtp',\n  'mail_smtphost' => 'smtp.gmail.com',\n  'mail_smtpport' => '587',\n  'mail_smtpsecure' => 'tls',\n  'mail_smtpauthtype' => 'LOGIN',\n  'mail_smtpauth' => 1,\n  'mail_smtpname' => 'myusername',\n  'mail_smtppassword' => 'mypassword'," $NAME_APP/config/config.php
+    sed -i "/^);/i \  'mail_domain' => 'gmail.com',\n  'mail_from_address' => 'no-reply',\n  'mail_smtpmode' => 'smtp',\n  'mail_smtphost' => 'smtp.gmail.com',\n  'mail_smtpport' => '587',\n  'mail_smtpsecure' => 'tls',\n  'mail_smtpauthtype' => 'LOGIN',\n  'mail_smtpauth' => 1,\n  'mail_smtpname' => 'jo.weisberg',\n  'mail_smtppassword' => 'J@hn2711.'," $NAME_APP/config/config.php
     # These files will be copied to the data directory of new users. Leave this directory empty if you do not want to copy any skeleton files.
     sed -i "/^);/i \  'skeletondirectory' => ''," $NAME_APP/config/config.php
     
@@ -244,7 +242,8 @@ case "$TYPE" in
     echo "* [owncloud] Create users and shares"
     echo "* "
     docker exec -i $NAME /bin/bash -c "occ group:add users" | sed 's/^/** /'
-    for L in $(cat $FILE_NAME.env | grep "^USER"); do
+    # USER="Login|passwd|First Last name|username@gmail.com"
+    for L in $(cat .env | grep "^USER"); do
       # Get the value after =
       V=${L#*=}
       # Evaluate variable inside the line
@@ -297,7 +296,8 @@ EOF
       rm -f $NAME_APP/out.json
     done
     
-    for L in $(cat $FILE_NAME.env | grep "^OC_SHARE"); do
+    # OC_SHARE="Pictures|Public/Pictures/Dir1||users"
+    for L in $(cat .env | grep "^OC_SHARE"); do
       # Get the value after =
       V=${L#*=}
       # Evaluate variable inside the line
@@ -310,9 +310,9 @@ EOF
       OC_ROOT=""                            # root_name
       if [ -z "$(echo $OC_SHARE | grep /)" ]; then
         # Split share and root
-        # OC_SHARE="Public/Users/Jeremie"
+        # OC_SHARE="Public/Pictures/Dir1"
         OC_ROOT=${OC_SHARE:$(expr index "$OC_SHARE" /):$(expr length "$OC_SHARE")}
-        # OC_ROOT="Users/Jeremie"
+        # OC_ROOT="Public/Pictures"
         OC_SHARE=${OC_SHARE:0:$(expr $(expr index "$OC_SHARE" /) - 1)}
         # OC_SHARE="Public"
       fi
