@@ -13,7 +13,7 @@
 # tar -zxf /var/docker/owncloud-bkp/docker-owncloud-10.1.0_20191026-222235.tar.gz -C /
 # chown -R www-data:www-data /var/docker/owncloud
 # exit
-# cd ~/docker-media
+# cd ~/docker-nas
 # Update .env file with: OWNCLOUD_VERSION=10.1.0
 # ./docker-run.sh
 #
@@ -85,7 +85,7 @@ USER=$(id -un)
 HOST_NAME=$(host $HOSTNAME | awk '{print $1}' | awk -F. '{print $1}')
 HOST_DOMAIN=$(host $HOSTNAME | awk '{print $1}' | awk -F. '{print $2}')
 
-DOCK_PATH="$FILE_PATH/docker-media"
+DOCK_PATH="$FILE_PATH/docker-nas"
 DOCK_ENV="$DOCK_PATH/.env"
 export COMPOSE_INTERACTIVE_NO_CLI=1
 # Run jq command via docker
@@ -203,7 +203,7 @@ case "$TYPE" in
     echo "* [owncloud] Set configuration"
     echo "* "
     docker exec -i $NAME /bin/bash -c "occ config:system:set logtimezone --value='Europe/Paris'" | sed 's/^/** /'
-    sed -i "/^);/i \  'mail_domain' => 'gmail.com',\n  'mail_from_address' => 'no-reply',\n  'mail_smtpmode' => 'smtp',\n  'mail_smtphost' => 'smtp.gmail.com',\n  'mail_smtpport' => '587',\n  'mail_smtpsecure' => 'tls',\n  'mail_smtpauthtype' => 'LOGIN',\n  'mail_smtpauth' => 1,\n  'mail_smtpname' => 'jo.weisberg',\n  'mail_smtppassword' => 'J@hn2711.'," $NAME_APP/config/config.php
+    sed -i "/^);/i \  'mail_domain' => 'gmail.com',\n  'mail_from_address' => 'no-reply',\n  'mail_smtpmode' => 'smtp',\n  'mail_smtphost' => 'smtp.gmail.com',\n  'mail_smtpport' => '587',\n  'mail_smtpsecure' => 'tls',\n  'mail_smtpauthtype' => 'LOGIN',\n  'mail_smtpauth' => 1,\n  'mail_smtpname' => '$(echo $MAIL_ADR | awk -F@ '{print $1}')',\n  'mail_smtppassword' => '$MAIL_PWD'," $NAME_APP/config/config.php
     # These files will be copied to the data directory of new users. Leave this directory empty if you do not want to copy any skeleton files.
     sed -i "/^);/i \  'skeletondirectory' => ''," $NAME_APP/config/config.php
     

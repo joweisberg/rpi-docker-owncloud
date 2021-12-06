@@ -133,7 +133,7 @@ alias osbackup='/home/media/os-backup.sh'
 alias osupgrade='/home/media/os-upgrade.sh --auto'
 alias doclog='docker logs'
 alias docres='docker restart'
-alias docrec='f() { cd /home/media/docker-media; docker-compose up -d --no-deps --force-recreate $1; cd - > /dev/null; }; f'
+alias docrec='f() { cd /home/media/docker-nas; docker-compose up -d --no-deps --force-recreate $1; cd - > /dev/null; }; f'
 alias docps='docker ps  --format "table {{.Names}}\t{{.Image}}\t{{.Command}}\t{{.Status}}"'
 alias docstats='docker stats --all --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"'
 alias docdf='docker system df'
@@ -331,7 +331,7 @@ EOF
   systemctl daemon-reload
   systemctl restart mnt-openwrt\\x2dcerts.mount
   systemctl restart mnt-openwrt\\x2dcerts.automount
-  sed -i 's/^#__ACME_COPY__//' $FILE_PATH/docker-media/docker-compose.yml
+  sed -i 's/^#__ACME_COPY__//' docker-nas/docker-compose.yml
 fi
 
 echo "* [journald] Limit size=100M and 3day of /var/log/journal"
@@ -717,20 +717,20 @@ sed -i 's/firewalld.service/netfilter-persistent.service/g' /lib/systemd/system/
 #sed -i 's/^After=.*/& smbd.service/' /lib/systemd/system/docker.service
 # Kill process using http/https ports before starting docker, prevent "accept tcp [::]:80: use of closed network connection" on Traefik
 #sed -i '/^ExecStart=.*/i ExecStartPre=/usr/bin/fuser --kill 80/tcp > /dev/null 2>&1\nExecStartPre=/usr/bin/fuser --kill 443/tcp > /dev/null 2>&1' /lib/systemd/system/docker.service
-#sed -i '/^ExecStart=.*/i ExecStartPre=/home/media/docker-media/docker-iproute.sh' /lib/systemd/system/docker.service
+#sed -i '/^ExecStart=.*/i ExecStartPre=/home/media/docker-nas/docker-iproute.sh' /lib/systemd/system/docker.service
 systemctl enable docker
 
 HOST=$(hostname -A | awk '{ print $1 }')
 HOST_IP=$(hostname -I | awk '{ print $1 }')
-if [ -f $FILE_PATH/docker-media/.env ]; then
-  sed -i "s/^HOST=.*/HOST=$HOST/g" $FILE_PATH/docker-media/.env
-  sed -i "s/^HOST_IP=.*/HOST_IP=$HOST_IP/g" $FILE_PATH/docker-media/.env
-  sed -i "s/^DOMAIN=.*/DOMAIN=$DOMAIN/g" $FILE_PATH/docker-media/.env
+if [ -f docker-nas/.env ]; then
+  sed -i "s/^HOST=.*/HOST=$HOST/g" docker-nas/.env
+  sed -i "s/^HOST_IP=.*/HOST_IP=$HOST_IP/g" docker-nas/.env
+  sed -i "s/^DOMAIN=.*/DOMAIN=$DOMAIN/g" docker-nas/.env
   if [ ! -d /var/docker/owncloud ]; then
     OC_VER=$(git ls-remote --tags --refs https://github.com/owncloud/core.git | cut -d'v' -f2 | grep -v -E "alpha|beta|RC" | sort -nr 2> /dev/null | head -n1)
-    sed -i "s/^OWNCLOUD_VERSION=.*/OWNCLOUD_VERSION=$OC_VER/g" $FILE_PATH/docker-media/.env
+    sed -i "s/^OWNCLOUD_VERSION=.*/OWNCLOUD_VERSION=$OC_VER/g" docker-nas/.env
   fi
-  sed -i "s/^OWNCLOUD_DOMAIN=.*/OWNCLOUD_DOMAIN=$DOMAIN/g" $FILE_PATH/docker-media/.env
+  sed -i "s/^OWNCLOUD_DOMAIN=.*/OWNCLOUD_DOMAIN=$DOMAIN/g" docker-nas/.env
 fi
 if [ -f /var/docker/traefik/servers.toml ]; then
   sed -i "s/.*rule = \"Host.*/    rule = \"Host(\`$DOMAIN.\`)\"/g" /var/docker/traefik/servers.toml
@@ -738,7 +738,7 @@ if [ -f /var/docker/traefik/servers.toml ]; then
 fi
 if [ -f /var/docker/traefik/certs/ssl-cert.key ]; then
   echo "* [traefik] Set symlink for ssl certificates"
-  . $FILE_PATH/docker-media/.env
+  . docker-nas/.env
   ln -f /var/docker/traefik/certs/ssl-cert.key /etc/ssl/private/$DOMAIN.key
   ln -f /var/docker/traefik/certs/ssl-cert.pem /etc/ssl/certs/$DOMAIN.pem
   ln -f /var/docker/traefik/certs/ssl-cert.crt /var/docker/owncloud/files/files_external/rootcerts.crt

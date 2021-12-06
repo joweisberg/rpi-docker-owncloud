@@ -64,7 +64,9 @@ $ ln -sf /var/docker $HOME/docker
 Setup is located on $HOME/`.env`
 * `TZ`: timezone name (like Etc/UTC or Europe/Paris)
 * `DOMAIN`: sub.example.com the domain name dns resolution
-* `ACME_COPY`: 1 to enable copy acme certificates to your router (used on $HOME/docker-media/docker-compose.yml > certs-extraction)
+* `ACME_COPY`: 1 to enable copy acme certificates to your router (used on $HOME/docker-nas/docker-compose.yml > certs-extraction)
+* `MAIL_ADR`: email address (username@gmail.com)
+* `MAIL_PWD`: email password
 
 Samba users list:
 * `USER`: < User Login>|< User Password <i>(can be empty)</i>>|< Full Name User / Description>|< User mail>
@@ -86,13 +88,13 @@ $ sudo $HOME/os-backup.sh
 
 6. Setup docker / onwcloud
 
-Edit and adapt to your needs: $HOME/`docker-media/.env`
+Edit and adapt to your needs: $HOME/`docker-nas/.env`
 * `DOMAIN`: sub.example.com the domain name dns resolution
 * `LE_MAIL`: Letsencrypt email address
 
 ```bash
 $ ssh media@rpi
-$ cd $HOME/docker-media && ./docker-build.sh
+$ cd $HOME/docker-nas && ./docker-build.sh
 ```
 
 7. RPi web access:
