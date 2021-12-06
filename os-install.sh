@@ -210,7 +210,6 @@ UsePAM no
 PrintMotd no
 
 # Network configuration
-ClientAliveInterval 180
 AllowTcpForwarding yes
 X11Forwarding yes
 TCPKeepAlive yes
