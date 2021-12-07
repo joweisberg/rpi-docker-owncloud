@@ -236,8 +236,8 @@ usermod -g users $USER
 # Remove group
 delgroup $USER
 
-# USER="Jonathan|passwd|Jonathan Weisberg"
-for L in $(cat $FILE_NAME.env | grep "^USER="); do
+# USER="Login|passwd|First Last name|username@gmail.com"
+for L in $(cat .env | grep "^USER="); do
   # Get the value after =
   V=${L#*=}
   # Evaluate variable inside the line
@@ -373,9 +373,12 @@ if [ -n "$(echo $answer | grep -i '^y')" ]; then
   chmod -R g-s /mnt/data/*
 
   chown -R $USER:users /mnt/data/Public/*
+  chown -R nobody:nogroup /mnt/data/Public/Home/
+  chown -R nobody:nogroup /mnt/data/Public/Pictures/
+  chown -R nobody:nogroup /mnt/data/Public/Videos/
 
-  # USER="Jonathan|passwd|Jonathan Weisberg"
-  for L in $(cat $FILE_NAME.env | grep "^USER="); do
+  # USER="Login|passwd|First Last name|username@gmail.com"
+  for L in $(cat .env | grep "^USER="); do
     # Get the value after =
     V=${L#*=}
     # Evaluate variable inside the line
@@ -469,8 +472,8 @@ oplocks=yes
 locking=yes
 EOF
 
-# USER="Jonathan|passwd|Jonathan Weisberg"
-for L in $(cat $FILE_NAME.env | grep "^USER="); do
+# USER="Login|passwd|First Last name|username@gmail.com"
+for L in $(cat .env | grep "^USER="); do
   # Get the value after =
   V=${L#*=}
   # Evaluate variable inside the line
@@ -716,7 +719,9 @@ sed -i 's/firewalld.service/netfilter-persistent.service/g' /lib/systemd/system/
 #sed -i 's/^After=.*/& smbd.service/' /lib/systemd/system/docker.service
 # Kill process using http/https ports before starting docker, prevent "accept tcp [::]:80: use of closed network connection" on Traefik
 #sed -i '/^ExecStart=.*/i ExecStartPre=/usr/bin/fuser --kill 80/tcp > /dev/null 2>&1\nExecStartPre=/usr/bin/fuser --kill 443/tcp > /dev/null 2>&1' /lib/systemd/system/docker.service
-#sed -i '/^ExecStart=.*/i ExecStartPre=/home/media/docker-nas/docker-iproute.sh' /lib/systemd/system/docker.service
+# Fix docker ip route for macvlan networking
+#sed -i "/^ExecStart=.*/i ExecStartPre=$FILE_PATH/docker-nas/docker-iproute.sh" /lib/systemd/system/docker.service
+#sed -i "/^ExecStart=.*/a ExecStartPost=$FILE_PATH/docker-nas/docker-autorestart.sh" /lib/systemd/system/docker.service
 systemctl enable docker
 
 HOST=$(hostname -A | awk '{ print $1 }')
