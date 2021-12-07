@@ -305,9 +305,9 @@ if [ -f $FILE_LOG_ERRORS ] && [ -n "$(cat $FILE_LOG_ERRORS | grep "rmdir: failed
   fi
 fi
 # Installation finished. No error reported.
-if [ -f $FILE_LOG_ERRORS ] && [ -n "$(cat $FILE_LOG_ERRORS | grep "Installation finished. No error reported.")" ]; then
-  sed -i 's/^Installation finished. No error reported./Installation finished./g' $FILE_LOG_ERRORS
-fi
+sed -i 's/^Installation finished. No error reported./Installation finished./g' $FILE_LOG_ERRORS
+sed -i 's#deb-systemd-helper#/usr/bin/deb-systemd-helper not finding those services.#g' $FILE_LOG_ERRORS
+sed -i 's#samba-ad-dc.service#Unit file /etc/systemd/system/samba-ad-dc.service is masked.#g' $FILE_LOG_ERRORS
 
 
 if [ -f $FILE_LOG ] && [ -n "$(cat $FILE_LOG | grep -E "linux-firmware|linux-headers|flash-kernel")" ]; then
