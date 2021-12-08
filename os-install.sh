@@ -1,22 +1,15 @@
 #!/bin/bash
 #
 # ssh ubuntu@ubuntu / ubuntu
-# sudo -i
-# (
-# echo "RPi.!#_" # New UNIX password
-# echo "Rpi.!#_" # Retype new UNIX password
-# ) | passwd
-# useradd -m -d /home/media -s /bin/bash -c "RPi's media user" -g users media
+# passwd
+# useradd -m -d /home/media -s /bin/bash -c "RPi's main user" -g users media
 # usermod -a -G adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,lxd,netdev,www-data,syslog media
 # usermod -g 100 media
-# (
-# echo "M&di@!" # New UNIX password
-# echo "M&di@!" # Retype new UNIX password
-# ) | passwd media
+# passwd media
 # echo "rpi" > /etc/hostname
 # reboot
 # 
-# ssh media@rpi / M&di@!
+# ssh media@rpi
 # sudo -i
 # deluser ubuntu
 # rm -Rf /home/ubuntu
@@ -26,7 +19,7 @@
 # ln -sf /var/docker $HOME/docker
 #
 # Launch command:
-# sudo $HOME/os-install.sh --domain=ejw.root.sx 2>&1 | tee /var/log/os-install.log
+# sudo $HOME/os-install.sh --domain=sub.example.com 2>&1 | tee /var/log/os-install.log
 #
 # cpu=$(cat /sys/class/thermal/thermal_zone0/temp) && echo "CPU => $((cpu/1000))°C"
 #
