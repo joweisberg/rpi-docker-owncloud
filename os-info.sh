@@ -188,4 +188,12 @@ else
   echo "NO ACTIVE SSH CONNECTION"
 fi
 
+if [ $pkgUpgradable -gt 0 ]; then
+  echo
+  echo "KEEP SYSTEM UP TO DATE"
+  echo "$(echored " Packages installed: ")$(apt list --installed 2> /dev/null | grep "installed" | wc -l)"
+  echo "$(echored " Packages upgradable: ")$(echopurple $pkgUpgradable)"
+  echo " * $(echopurple "sudo $(pwd)/os-upgrade.sh --manual")"
+fi
+
 echo
