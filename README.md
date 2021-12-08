@@ -36,7 +36,7 @@ $ sudo -i
 # Change default root password
 $ passwd
 # Add new 'media' user
-$ useradd -m -d /home/media -s /bin/bash -c "RPi's media user" -g users media
+$ useradd -m -d /home/media -s /bin/bash -c "RPi's main user" -g users media
 $ usermod -a -G adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,lxd,netdev,www-data,syslog media
 $ usermod -g 100 media
 # Set 'media' user password
